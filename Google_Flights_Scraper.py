@@ -1,5 +1,3 @@
-from serpapi import GoogleSearch
-
 # Your SerpAPI API key
 API_KEY = "b637153e8613b18fc81533dfbf72045c9b43cbdd25323736bc3009ee6c38435a"
 
@@ -22,10 +20,3 @@ def search_flights(departure_id, arrival_id, outbound_date, return_date, currenc
         params["min_time"] = min_time
     if max_time:
         params["max_time"] = max_time
-
-    try:
-        search = GoogleSearch(params)
-        results = search.get_dict()
-        return results
-    except Exception as e:
-        return str(e)
