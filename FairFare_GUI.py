@@ -1,10 +1,16 @@
 import sys
+
+from qrangeslider import QRangeSlider
+
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton,
     QListWidget, QTextEdit, QMessageBox, QDateTimeEdit, QComboBox, QHBoxLayout
 )
 from PyQt5.QtCore import (
-    QDate
+    QDate, Qt
+)
+from PyQt5.QtGui import (
+    QPixmap
 )
 from Google_Flights_Scraper import search_flights  # Import the flight search function
 
@@ -17,22 +23,30 @@ from datetime import datetime
 # Stylesheet information for GUI layout
 
 QCOMBO_HEIGHT = 50
+
 # QLABEL_BASE = "QLabel {{background: #{}; color: #00aeef; border: 3px inset #5252cc; font: 'Noto Serif';}}"
 # # QLABEL_DEFAULT = "QLabel {background: #002050; color: #00aeef; border: 3px outset #5252cc; font: 'Noto Serif'; font-size: 50pt;}"
 # QLABEL_DEFAULT = "QWidget {font: 'Noto Serif'; font-size: 16pt; text-align: center; background: #000000; color: #ffffff; border: 0px outset #696969;} \
                     # QLabel {font: 'Noto Serif'; font-size: 30pt; qproperty-alignment: AlignCenter; background: #000000; color: #ffffff; border: 3px outset #696969;}"
-QLABEL_GUI = "QLabel {height: 40; font: 'Noto Serif'; font-size: 16pt; text-align: center; qproperty-alignment: AlignCenter; background: #000000; color: #ffffff;} \
-                QWidget {height: 40; font: 'Noto Serif'; font-size: 16pt; text-align: center; qproperty-alignment: AlignCenter; background: #000000; color: #ffffff;} \
-                QLineEdit {height: 40; font: 'Noto Serif'; font-size: 16pt; text-align: center; qproperty-alignment: AlignCenter; background: #000000; color: #ffffff;} \
-                QPushButton {border: 3px outset #696969; background: #111111;} \
+QLABEL_GUI = "QLabel {height: 40; font: 'Noto Serif'; font-size: 16pt; text-align: center; qproperty-alignment: AlignCenter; background: #343f62; color: #ffffff;} \
+                QWidget {height: 40; font: 'Noto Serif'; font-size: 16pt; text-align: center; qproperty-alignment: AlignCenter; background: #343f62; color: #ffffff;} \
+                QLineEdit {height: 40; font: 'Noto Serif'; font-size: 16pt; text-align: center; qproperty-alignment: AlignCenter; background: #343f62; color: #ffffff;} \
+                QPushButton {border: 3px outset #696969; background: #343f62;} \
                 QComboBox {font: 'Noto Serif'; font-size: 20pt; border: 3px outset #696969;} \
-                QCalendarWidget QWidget{background-color:black; color: white} \
-                QCalendarWidget QToolButton{ background-color:black; color: white; icon-size: 30px; } \
-                QCalendarWidget QMenu{background-color:black; color: white;}\
-                QCalendarWidget QAbstractItemView:enabled{background-color: black; color: gray;}\
-                QCalendarWidget QAbstractItemView:disabled{background-color: black ;color: black;}\
-                QCalendarWidget QMenu{background-color: black;}\
-                QCalendarWidget QSpinBox{background-color: black;}"      
+                QCalendarWidget QWidget{background-color:#343f62; color: white} \
+                QCalendarWidget QToolButton{ background-color:#343f62; color: white; icon-size: 30px; } \
+                QCalendarWidget QMenu{background-color:#343f62; color: white;}\
+                QCalendarWidget QAbstractItemView:enabled{background-color: #343f62; color: gray;}\
+                QCalendarWidget QAbstractItemView:disabled{background-color: #343f62 ;color: black;}\
+                QCalendarWidget QMenu{background-color: #343f62;}\
+                QCalendarWidget QSpinBox{background-color: #343f62;}"  
+QLABEL_ICON = "QLabel {qproperty-alignment: AlignCenter; border: 0px outset #696969; width: 10; height: 10;}"
+QLABEL_TITLE = "QLabel {width: 30; height: 40; font: 'Noto Serif'; font-size: 45pt; text-align: center; qproperty-alignment: AlignCenter; background: #343f62; color: #ffffff; font-weight: bold; font-style: italic;}"
+    
+
+GUI_HEIGHT = 750
+GUI_WIDTH = 1000
+
 
 # SERP_API_KEY = "b637153e8613b18fc81533dfbf72045c9b43cbdd25323736bc3009ee6c38435a"  
 SERP_API_KEY = "8e3b97559f70aeb1a2d6f78da4ca024bab7525e316361ac1c955016a16136cf7"
@@ -54,14 +68,28 @@ class FlightSearchApp(QWidget):
 
     def initUI(self):
         self.setWindowTitle("Flight Search")
-        self.setGeometry(300, 100, 1000, 750)
+        self.setGeometry(300, 100, GUI_WIDTH, GUI_HEIGHT)
 
         app.setStyleSheet(QLABEL_GUI)
 
         # Get list of all airport codes and locations
 
         self.get_all_airports()
-        # print(self.all_airports)
+
+        logo_label = QLabel(self)
+        logo_label.setPixmap(QPixmap("logo.png")) #.scaled(10, 20, Qt.KeepAspectRatio))
+        logo_label.setFixedWidth(100)
+        logo_label.setFixedHeight(100)
+        logo_label.setScaledContents(True)
+        logo_label.setStyleSheet(QLABEL_ICON)
+
+        logo_title = QLabel("FAIRFARE")
+        logo_title.setStyleSheet(QLABEL_TITLE)
+
+        logo_layout = QHBoxLayout()
+        logo_layout.setAlignment(Qt.AlignCenter)
+        logo_layout.addWidget(logo_label)
+        logo_layout.addWidget(logo_title)
 
         # Input fields for search parameters
 
@@ -127,20 +155,37 @@ class FlightSearchApp(QWidget):
         max_cost_layout = QVBoxLayout()
         max_cost_layout.addWidget(QLabel("Maximum Cost (Optional):"))
         max_cost_layout.addWidget(self.max_cost_entry)
+
+        self.time_entry = QRangeSlider(self)
+        self.time_entry.setFixedHeight(50)
+        self.time_entry.setMin(0)
+        self.time_entry.setMax(180)
+        self.time_entry.setRange(0, 180)
         
 
-        self.min_time_entry = QLineEdit(self)
-        self.min_time_entry.setPlaceholderText("Enter minimum flight time in minutes (optional)")
-        min_time_layout = QVBoxLayout()
-        min_time_layout.addWidget(QLabel("Minimum Flight Time (Optional):"))
-        min_time_layout.addWidget(self.min_time_entry)
+        self.time_entry.handle.setStyleSheet('border: 0px; background-color:gray') 
+        self.time_entry.head.setStyleSheet('border: 0px; background-color:#232b42')
+        self.time_entry.tail.setStyleSheet('border: 0px; background-color:#232b42')
+
+        print(self.time_entry.start())
+        print(self.time_entry.end())
+        self.time_entry.handle.setTextColor(255)
+
+        # self.time_entry.setRange(500, 1253)
         
 
-        self.max_time_entry = QLineEdit(self)
-        self.max_time_entry.setPlaceholderText("Enter maximum flight time in minutes (optional)")
-        max_time_layout = QVBoxLayout()
-        max_time_layout.addWidget(QLabel("Maximum Flight Time (Optional):"))
-        max_time_layout.addWidget(self.max_time_entry)
+        # self.time_entry = QLineEdit(self)
+        # self.time_entry.setPlaceholderText("Enter minimum flight time in minutes (optional)")
+        time_layout = QVBoxLayout()
+        time_layout.addWidget(QLabel("Minimum and Maximum Flight Time (Optional):"))
+        time_layout.addWidget(self.time_entry)
+        
+
+        # self.max_time_entry = QLineEdit(self)
+        # self.max_time_entry.setPlaceholderText("Enter maximum flight time in minutes (optional)")
+        # max_time_layout = QVBoxLayout()
+        # max_time_layout.addWidget(QLabel("Maximum Flight Time (Optional):"))
+        # max_time_layout.addWidget(self.max_time_entry)
         
 
         # Search button
@@ -172,14 +217,15 @@ class FlightSearchApp(QWidget):
         other1_layout.addLayout(max_cost_layout)
 
         other2_layout = QHBoxLayout()
-        other2_layout.addLayout(min_time_layout)
-        other2_layout.addLayout(max_time_layout)
+        other2_layout.addLayout(time_layout)
+        # other2_layout.addLayout(max_time_layout)
         
         flight_info_layout = QHBoxLayout()
         flight_info_layout.addWidget(self.flight_list)
         flight_info_layout.addWidget(self.flight_details)
 
         layout = QVBoxLayout()
+        layout.addLayout(logo_layout)
         layout.addLayout(airport_code_layout)
         layout.addLayout(date_layout)
         layout.addLayout(other1_layout)
@@ -227,8 +273,8 @@ class FlightSearchApp(QWidget):
         return_date = self.return_date_entry.text()
         currency = self.currency_entry.currentText()
         max_cost = self.max_cost_entry.text()  # Optional max cost input
-        min_time = self.min_time_entry.text()  # Optional minimum time input
-        max_time = self.max_time_entry.text()  # Optional maximum time input
+        min_time = self.time_entry.start()  # Optional minimum time input
+        max_time = self.time_entry.end()  # Optional maximum time input
 
         # pprint([departure_id, arrival_id, outbound_date, return_date, currency, max_cost, min_time, max_time])
         # pprint([type(departure_id), type(arrival_id), type(outbound_date), type(return_date), type(currency), type(max_cost), type(min_time), type(max_time)])
