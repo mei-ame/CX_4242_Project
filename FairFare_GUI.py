@@ -196,6 +196,8 @@ class FlightSearchApp(QWidget):
         self.trip_multi.toggled.connect(self.on_radio_button_toggled)
         self.trip_round.setChecked(True)
 
+        self.trip_type = "Round Trip"
+
         trip_layout = QVBoxLayout()
         trip_layout.addWidget(QLabel("Trip Type"))
         trip_layout.addWidget(self.trip_round)
@@ -258,29 +260,51 @@ class FlightSearchApp(QWidget):
         search_button.clicked.connect(self.on_search_clicked)
         
 
-        # List widget for displaying flights
-        self.flight_list = QListWidget(self)
-        self.flight_list.itemClicked.connect(self.display_flight_details)
-        
+        # List widget for displaying departure flights
+        # self.departure_flight_list = QListWidget(self)
+        # self.departure_flight_list.itemClicked.connect(self.display_flight_details)
 
+        self.departure_token_list = []
+        
         # Text edit for displaying flight details
         self.flight_details = QTextEdit(self)
         self.flight_details.setReadOnly(True)
 
-        # Table widget for flight information
-        self.flight_table = QTableWidget(self)
-        self.flight_table.setColumnCount(7)
-        self.flight_table.setRowCount(1)
-        flight_table_columns = ["Airline", "Price", "Type", "Departure", "Arrival", "Arrival Date", "Travel Class"]
-        for i in range(self.flight_table.columnCount()):
-            self.flight_table.setItem(0 , i, QTableWidgetItem(flight_table_columns[i]))
-            self.flight_table.item(0, i).setBackground(QColor(30,38,64))
-        self.flight_table.horizontalHeader().setVisible(False)
-        self.flight_table.verticalHeader().setVisible(False)
-        self.flight_table.cellClicked.connect(self.flights_select_row)
-        self.flight_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.flight_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.flight_table.setShowGrid(False)
+        # List widget for displaying return flights
+        self.return_flight_list = QListWidget(self)
+        # self.return_flight_list.itemClicked.connect(self.display_flight_details)
+
+        # Table widget for departure flight information
+        self.departure_flight_table = QTableWidget(self)
+        self.departure_flight_table.setColumnCount(7)
+        self.departure_flight_table.setRowCount(1)
+        departure_flight_table_columns = ["Airline", "Price", "Type", "Departure", "Arrival", "Arrival Date", "Travel Class"]
+        for i in range(self.departure_flight_table.columnCount()):
+            self.departure_flight_table.setItem(0 , i, QTableWidgetItem(departure_flight_table_columns[i]))
+            self.departure_flight_table.item(0, i).setBackground(QColor(30,38,64))
+        self.departure_flight_table.horizontalHeader().setVisible(False)
+        self.departure_flight_table.verticalHeader().setVisible(False)
+        self.departure_flight_table.cellClicked.connect(self.on_flight_row_clicked)
+        self.departure_flight_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.departure_flight_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.departure_flight_table.setShowGrid(False)
+
+        self.departure_token = ""
+
+        # Table widget for return flight information
+        self.return_flight_table = QTableWidget(self)
+        self.return_flight_table.setColumnCount(7)
+        self.return_flight_table.setRowCount(1)
+        return_flight_table_columns = ["Airline", "Price", "Type", "Departure", "Arrival", "Arrival Date", "Travel Class"]
+        for i in range(self.return_flight_table.columnCount()):
+            self.return_flight_table.setItem(0 , i, QTableWidgetItem(return_flight_table_columns[i]))
+            self.return_flight_table.item(0, i).setBackground(QColor(30,38,64))
+        self.return_flight_table.horizontalHeader().setVisible(False)
+        self.return_flight_table.verticalHeader().setVisible(False)
+        # self.return_flight_table.cellClicked.connect(self.on_flight_row_clicked)
+        self.return_flight_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.return_flight_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.return_flight_table.setShowGrid(False)
         
         ############################################################################################################
         # Insert all data in layout
@@ -298,9 +322,9 @@ class FlightSearchApp(QWidget):
         code_and_date_layout.addLayout(date_layout)
         
         flight_info_layout = QHBoxLayout()
-        flight_info_layout.addWidget(self.flight_list)
+        # flight_info_layout.addWidget(self.departure_flight_list)
         flight_info_layout.addWidget(self.flight_details)
-        self.flight_list.setVisible(False)
+        # self.departure_flight_list.setVisible(False)
         self.flight_details.setVisible(False)
 
         left_panel_layout = QVBoxLayout()
@@ -324,7 +348,8 @@ class FlightSearchApp(QWidget):
         main_panel.addLayout(code_and_date_layout)
         main_panel.addWidget(search_button)
         main_panel.addLayout(flight_info_layout)
-        main_panel.addWidget(self.flight_table)
+        main_panel.addWidget(self.departure_flight_table)
+        main_panel.addWidget(self.return_flight_table)
 
         panel_layout = QHBoxLayout()
         panel_layout.addWidget(self.left_panel)
@@ -355,9 +380,7 @@ class FlightSearchApp(QWidget):
             self.return_date_entry.setEnabled(False)
             self.return_date_entry.setVisible(False)
             self.ret_date_label.setVisible(False)
-
-    def flights_select_row(self, row, column):
-            self.flight_table.selectRow(row)
+        self.trip_type = radio_button.text()
 
     def get_all_currencies(self):
     # Get all currency abbreviations and names
@@ -378,7 +401,9 @@ class FlightSearchApp(QWidget):
 
     def on_search_clicked(self):
         # Clear previous search results
-        self.flight_list.clear()
+        # self.departure_flight_list.clear()
+        self.departure_token_list = []
+        self.departure_token = ""
         self.flight_details.clear()
 
         # Retrieve input values
@@ -386,16 +411,10 @@ class FlightSearchApp(QWidget):
         arrival_id = self.arrival_entry.text().upper()
         departure_date = self.departure_date_entry.text()
         return_date = self.return_date_entry.text()
-        # return_date = self.departure_date_entry.text()
-        # return_date_2 = self.departure_date_entry.date().addDays(1).toString('yyyy-MM-dd')
         currency = self.currency_entry.currentText()
         max_cost = None if self.cost_max_entry.text() == "-" else self.cost_max_entry.text()  # Optional max cost input
         min_time = None if self.time_min_entry.text() == "-" else self.time_min_entry.text() # Optional minimum time input
         max_time = None if self.time_max_entry.text() == "-" else self.time_max_entry.text() # Optional maximum time input
-
-        # pprint([departure_id, arrival_id, departure_date, return_date, currency, max_cost, min_time, max_time])
-        # pprint([type(departure_id), type(arrival_id), type(departure_date), type(return_date), type(currency), type(max_cost), type(min_time), type(max_time)])
-
 
         # Check for required fields
         if not all([departure_id, arrival_id, departure_date, return_date, currency]):
@@ -407,15 +426,9 @@ class FlightSearchApp(QWidget):
             departure_id, arrival_id, departure_date, return_date, currency,
             max_price=max_cost if max_cost else None,
             min_time=min_time if min_time else None,
-            max_time=max_time if max_time else None
+            max_time=max_time if max_time else None,
+            departure_token = None
         )
-        
-        # flight_data.extend(search_flights(
-        #     departure_id, arrival_id, departure_date, return_date_2, currency,
-        #     max_price=max_cost if max_cost else None,
-        #     min_time=min_time if min_time else None,
-        #     max_time=max_time if max_time else None
-        # ))
 
         # Handle no results or errors
         if not flight_data or isinstance(flight_data, str):
@@ -423,32 +436,118 @@ class FlightSearchApp(QWidget):
             return
 
         # Display flight options in the list
-        flight_list_headers = ["Airline", "Price", "Type", "Departure", "Arrival", "Travel Class"]
-        self.flight_list.addItem("\t".join(flight_list_headers))
+        departure_flight_list_headers = ["Airline", "Price", "Type", "Departure", "Arrival", "Travel Class"]
+        # self.departure_flight_list.addItem("\t".join(departure_flight_list_headers))
 
         for flight in flight_data:
             pprint(flight)
-            # item_text = f"${flight['price']} \t {flight['type']} \t {flight['total_duration']} min"
             item_list = [flight['flights'][0]['airline'], "$" + str(flight['price']), flight['type'], \
                 self.time_to_12(flight['flights'][0]['departure_time']), self.time_to_12(flight['flights'][-1]['arrival_time']), \
                 flight['flights'][0]['travel_class']  ]
             item_text = "\t".join(item_list)
-            self.flight_list.addItem(item_text)
+            # self.departure_flight_list.addItem(item_text)
+            self.departure_token_list.append(flight['departure_token'])
 
             # Add flight information into the table ["Airline", "Price", "Type", "Departure", "Arrival", "Travel Class"]
             format_string = "%Y-%m-%d %H:%M"
-            rowPosition = self.flight_table.rowCount()
-            self.flight_table.insertRow(rowPosition)
-            self.flight_table.setItem(rowPosition , 0, QTableWidgetItem(flight['flights'][0]['airline']))
-            self.flight_table.setItem(rowPosition , 1, QTableWidgetItem("$" + str(flight['price'])))
-            self.flight_table.setItem(rowPosition , 2, QTableWidgetItem(flight['type']))
-            self.flight_table.setItem(rowPosition , 3, QTableWidgetItem(self.time_to_12(flight['flights'][0]['departure_time'])))
-            self.flight_table.setItem(rowPosition , 4, QTableWidgetItem(self.time_to_12(flight['flights'][-1]['arrival_time'])))
-            self.flight_table.setItem(rowPosition , 5, QTableWidgetItem(flight['flights'][0]['arrival_time'].split(" ")[0]))
-            self.flight_table.setItem(rowPosition , 6, QTableWidgetItem(flight['flights'][0]['travel_class']))
+            rowPosition = self.departure_flight_table.rowCount()
+            self.departure_flight_table.insertRow(rowPosition)
+            self.departure_flight_table.setItem(rowPosition , 0, QTableWidgetItem(flight['flights'][0]['airline']))
+            self.departure_flight_table.setItem(rowPosition , 1, QTableWidgetItem("$" + str(flight['price'])))
+            self.departure_flight_table.setItem(rowPosition , 2, QTableWidgetItem(flight['type']))
+            self.departure_flight_table.setItem(rowPosition , 3, QTableWidgetItem(self.time_to_12(flight['flights'][0]['departure_time'])))
+            self.departure_flight_table.setItem(rowPosition , 4, QTableWidgetItem(self.time_to_12(flight['flights'][-1]['arrival_time'])))
+            self.departure_flight_table.setItem(rowPosition , 5, QTableWidgetItem(flight['flights'][0]['arrival_time'].split(" ")[0]))
+            self.departure_flight_table.setItem(rowPosition , 6, QTableWidgetItem(flight['flights'][0]['travel_class']))
 
         # Save the flight data to display when an item is selected
         self.current_flight_data = flight_data
+
+    def on_flight_row_clicked(self, row, column):
+        self.departure_flight_table.selectRow(row)
+        # print(self.departure_token_list)
+        self.departure_token = self.departure_token_list[row - 1]
+
+        pprint("===============RETURN FLIGHTS==================")
+
+        ###################################################################################################################
+        # RETURN FLIGHT INFORMATION
+        ###################################################################################################################
+        if self.trip_type == "Round Trip" and self.departure_token != "":
+            # Clear previous search results
+            # self.arrival_flight_list.clear()
+            # self.flight_details.clear()
+            # print(self.departure_token)
+
+            # Retrieve input values
+            departure_id = self.departure_entry.text().upper()
+            arrival_id = self.arrival_entry.text().upper()
+            departure_date = self.departure_date_entry.text()
+            return_date = self.return_date_entry.text()
+            # return_date = self.departure_date_entry.text()
+            # return_date_2 = self.departure_date_entry.date().addDays(1).toString('yyyy-MM-dd')
+            currency = self.currency_entry.currentText()
+            max_cost = None if self.cost_max_entry.text() == "-" else self.cost_max_entry.text()  # Optional max cost input
+            min_time = None if self.time_min_entry.text() == "-" else self.time_min_entry.text() # Optional minimum time input
+            max_time = None if self.time_max_entry.text() == "-" else self.time_max_entry.text() # Optional maximum time input
+            departure_token = self.departure_token
+            # print(departure_token)
+
+            self.return_flight_table.setShowGrid(True)
+
+            # Check for required fields
+            if not all([departure_id, arrival_id, departure_date, return_date, currency]):
+                QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
+                return
+
+            # Get flight data with optional parameters
+            flight_data = search_flights(
+                departure_id, arrival_id, departure_date, return_date, currency,
+                max_price=max_cost if max_cost else None,
+                min_time=min_time if min_time else None,
+                max_time=max_time if max_time else None,
+                departure_token=departure_token
+            )
+
+            # Handle no results or errors
+            if not flight_data or isinstance(flight_data, str):
+                QMessageBox.information(self, "No Results", str(flight_data) if flight_data else "No flights found.")
+                return
+
+            # Display flight options in the list
+            return_flight_list_headers = ["Airline", "Price", "Type", "Departure", "Arrival", "Travel Class"]
+            # self.return_flight_list.addItem("\t".join(return_flight_list_headers))
+
+            for flight in flight_data:
+                pprint(flight)
+                item_list = [flight['flights'][0]['airline'], "$" + str(flight['price']), flight['type'], \
+                    self.time_to_12(flight['flights'][0]['departure_time']), self.time_to_12(flight['flights'][-1]['arrival_time']), \
+                    flight['flights'][0]['travel_class']  ]
+                item_text = "\t".join(item_list)
+                self.return_flight_list.addItem(item_text)
+
+                # Add flight information into the table ["Airline", "Price", "Type", "Departure", "Arrival", "Travel Class"]
+                format_string = "%Y-%m-%d %H:%M"
+                rowPosition = self.return_flight_table.rowCount()
+                self.return_flight_table.insertRow(rowPosition)
+                self.return_flight_table.setItem(rowPosition , 0, QTableWidgetItem(flight['flights'][0]['airline']))
+                self.return_flight_table.setItem(rowPosition , 1, QTableWidgetItem("$" + str(flight['price'])))
+                self.return_flight_table.setItem(rowPosition , 2, QTableWidgetItem(flight['type']))
+                self.return_flight_table.setItem(rowPosition , 3, QTableWidgetItem(self.time_to_12(flight['flights'][0]['departure_time'])))
+                self.return_flight_table.setItem(rowPosition , 4, QTableWidgetItem(self.time_to_12(flight['flights'][-1]['arrival_time'])))
+                self.return_flight_table.setItem(rowPosition , 5, QTableWidgetItem(flight['flights'][0]['arrival_time'].split(" ")[0]))
+                self.return_flight_table.setItem(rowPosition , 6, QTableWidgetItem(flight['flights'][0]['travel_class']))
+
+        else:
+            print("Not a round trip.")
+
+            # Save the flight data to display when an item is selected
+            # self.current_flight_data = flight_data
+
+        ###################################################################################################################
+        ###################################################################################################################
+
+        
 
     def time_to_12(self, time):
         return "12:" + time.split(" ")[-1].split(":")[1] + " PM" \
@@ -461,7 +560,7 @@ class FlightSearchApp(QWidget):
 
     def display_flight_details(self, item):
     # Get index of the selected item
-        index = self.flight_list.row(item)
+        # index = self.departure_flight_list.row(item)
 
         if index != 0:
 
@@ -483,6 +582,8 @@ class FlightSearchApp(QWidget):
             # self.right_panel.setText(flight_text)
 
             # self.rightpane.addItem
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = FlightSearchApp()

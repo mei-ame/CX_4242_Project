@@ -5,7 +5,7 @@ from serpapi import GoogleSearch
 API_KEY = "8e3b97559f70aeb1a2d6f78da4ca024bab7525e316361ac1c955016a16136cf7"
 
 # Function to search flights using inputs
-def search_flights(departure_id, arrival_id, outbound_date, return_date, currency, max_price=None, min_time=None, max_time=None):
+def search_flights(departure_id, arrival_id, outbound_date, return_date, currency, max_price=None, min_time=None, max_time=None, departure_token=None):
     params = {
         "api_key": API_KEY,
         "engine": "google_flights",
@@ -23,6 +23,8 @@ def search_flights(departure_id, arrival_id, outbound_date, return_date, currenc
         params["min_time"] = min_time
     if max_time:
         params["max_time"] = max_time
+    if departure_token:
+        params["departure_token"] = departure_token
 
     try:
         search = GoogleSearch(params)
@@ -57,6 +59,7 @@ def search_flights(departure_id, arrival_id, outbound_date, return_date, currenc
                             "legroom": flight_leg.get("legroom"),
                         } for flight_leg in flight.get("flights", [])
                     ],
+                    "departure_token": flight.get("departure_token")
                 }
                 flight_details.append(flight_info)
             return flight_details
