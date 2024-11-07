@@ -27,5 +27,5 @@ def calculate_distance(airport_code, hotel_lat, hotel_lon):
     hotel_location = (hotel_lat, hotel_lon)
     
     # Calculate distance in kilometers
-    distance_km = haversine((airport_lat, airport_lon), hotel_location, unit=Unit.KILOMETERS)
+    distance_km = haversine((airport_lat, airport_lon), hotel_location, unit=Unit.MILES)
     return distance_km
