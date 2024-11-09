@@ -749,8 +749,10 @@ class FlightSearchApp(QWidget):
         try:
             r = requests.get("https://www.bts.gov/topics/airlines-and-airports/world-airport-codes")
             soup = BeautifulSoup(r.text, "html.parser")
+            table = soup.find('tbody')
             rows = table.find_all('tr')
             self.all_airports = {i.find_all('td')[0].text : {'City':i.find_all('td')[1].text.split(': ')[0], 'Airport':i.find_all('td')[1].text.split(': ')[0]} for i in rows}
+            # print(self.all_airports)
         except:
             print("No airports found.")
 
