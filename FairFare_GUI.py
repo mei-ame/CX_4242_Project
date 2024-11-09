@@ -28,7 +28,7 @@ from datetime import datetime
 
 # Stylesheet information for GUI layout
 
-GUI_HEIGHT = 750
+GUI_HEIGHT = 910
 GUI_WIDTH = 1300
 GUI_PANEL_WIDTH = 300
 LEFT_PANEL_HEIGHT = 600
@@ -104,6 +104,18 @@ class FlightSearchApp(QWidget):
 
         self.all_currencies = json.load(open("google-travel-currencies.json"))
         self.all_countries = json.load(open("google-countries.json"))
+
+        ##############################################################################################################
+        #   BEGIN WELCOME PAGE
+        ##############################################################################################################
+
+        self.welcome_start_button = QPushButton("Get Started")
+        self.welcome_start_button.clicked.connect(self.on_start_button_clicked)
+
+        ##############################################################################################################
+        #   END WELCOME PAGE
+        ##############################################################################################################
+
 
 
         ##############################################################################################################
@@ -366,6 +378,7 @@ class FlightSearchApp(QWidget):
 
         self.flight_frame = QFrame(self)
         self.flight_frame.setLayout(flight_frame_layout)
+        self.flight_frame.setVisible(False)
 
         ##############################################################################################################
         #   END FLIGHT PAGE
@@ -374,8 +387,6 @@ class FlightSearchApp(QWidget):
         ##############################################################################################################
         #   BEGIN HOTEL PAGE
         ##############################################################################################################
-
-        self.hotel_temp_page = QLabel("THIS IS THE HOTEL PAGE")
 
         self.hotel_location_entry = QLineEdit(self)
         self.hotel_location_entry.setPlaceholderText("Hotel Location")
@@ -513,7 +524,6 @@ class FlightSearchApp(QWidget):
         self.hotel_left_panel.setFixedHeight(LEFT_PANEL_HEIGHT)
 
         hotel_main_panel_layout = QVBoxLayout()
-        hotel_main_panel_layout.addWidget(self.hotel_temp_page)
         hotel_main_panel_layout.addLayout(hotel_loc_and_date_layout)
         hotel_main_panel_layout.addWidget(hotel_search_button)
         hotel_main_panel_layout.addLayout(hotel_table_layout)
@@ -537,6 +547,26 @@ class FlightSearchApp(QWidget):
         #   BEGIN PAGE INSERTION
         ##############################################################################################################
 
+        
+        self.flight_menu_button = QPushButton("<<< Flights")
+        self.flight_menu_button.clicked.connect(self.on_menu_button_clicked)
+        self.flight_menu_button.setVisible(False)
+        self.hotel_menu_button = QPushButton("Hotels >>>")
+        self.hotel_menu_button.clicked.connect(self.on_menu_button_clicked)
+        self.hotel_menu_button.setVisible(False)
+        self.next_menu_button = QPushButton("Next >>>")
+        self.next_menu_button.setVisible(False)
+        self.menu_spacer_label = QLabel(" " * ((GUI_WIDTH // 10 * 7) // 6))
+
+        menu_frame_layout = QHBoxLayout()
+        menu_frame_layout.addWidget(self.flight_menu_button)
+        menu_frame_layout.addWidget(self.menu_spacer_label)
+        menu_frame_layout.addWidget(self.hotel_menu_button)
+        menu_frame_layout.addWidget(self.next_menu_button)
+
+        self.menu_frame = QFrame(self)
+        self.menu_frame.setLayout(menu_frame_layout)
+
         logo_label = QLabel(self)
         logo_label.setPixmap(QPixmap("logo.png")) #.scaled(10, 20, Qt.KeepAspectRatio))
         logo_label.setFixedWidth(100)
@@ -549,34 +579,34 @@ class FlightSearchApp(QWidget):
 
         logo_panel_layout = QHBoxLayout()
         logo_panel_layout.setAlignment(Qt.AlignCenter)
+        # logo_panel_layout.addWidget(self.flight_menu_button)
         logo_panel_layout.addWidget(logo_label)
         logo_panel_layout.addWidget(logo_title)
+        # logo_panel_layout.addWidget(self.hotel_menu_button)
 
         self.logo_panel = QFrame(self)
         self.logo_panel.setLayout(logo_panel_layout)
 
-        
-        self.flight_menu_button = QPushButton("Flights")
-        self.flight_menu_button.clicked.connect(self.on_menu_button_clicked)
-        self.hotel_menu_button = QPushButton("Hotels")
-        self.hotel_menu_button.clicked.connect(self.on_menu_button_clicked)
+        welcome_layout = QVBoxLayout()
+        welcome_layout.addWidget(self.welcome_start_button)
 
-        menu_frame_layout = QHBoxLayout()
-        menu_frame_layout.addWidget(self.flight_menu_button)
-        menu_frame_layout.addWidget(self.hotel_menu_button)
-
-        self.menu_frame = QFrame(self)
-        self.menu_frame.setLayout(menu_frame_layout)
+        self.welcome_panel = QFrame(self)
+        self.welcome_panel.setLayout(welcome_layout)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.logo_panel)
-
         layout.addWidget(self.menu_frame)
+        layout.addWidget(self.logo_panel)
+        layout.addWidget(self.welcome_panel)
         layout.addWidget(self.flight_frame)
         layout.addWidget(self.hotel_frame)
 
         layout.addWidget(QLabel("THIS IS A TEST"))
         self.setLayout(layout)
+
+    def on_start_button_clicked(self):
+        self.welcome_start_button.setVisible(False)
+        self.flight_frame.setVisible(True)
+        self.hotel_menu_button.setVisible(True)
 
     def on_search_clicked(self):
         # Clear previous search results
@@ -769,11 +799,18 @@ class FlightSearchApp(QWidget):
         push_button = self.sender()
         if push_button == self.flight_menu_button:
             self.hotel_frame.setVisible(False)
+            self.flight_menu_button.setVisible(False)
+            self.next_menu_button.setVisible(False)
             self.flight_frame.setVisible(True)
+            self.hotel_menu_button.setVisible(True)
 
         if push_button == self.hotel_menu_button:
             self.flight_frame.setVisible(False)
+            self.hotel_menu_button.setVisible(False)
+            self.next_menu_button.setVisible(True)
             self.hotel_frame.setVisible(True)
+            self.flight_menu_button.setVisible(True)
+           
 
     def get_all_airports(self):
     # Get all airport abbreviations and names
