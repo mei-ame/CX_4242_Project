@@ -476,9 +476,9 @@ class FlightSearchApp(QWidget):
         self.hotel_amenities = []
 
         hotel_search_button = QPushButton("Search Hotels", self)
-        # hotel_search_button.clicked.connect(self.on_search_clicked)
+        hotel_search_button.clicked.connect(self.on_hotel_search_clicked)
 
-        hotel_table_columns = ["Name", "Price per Night", "Total Price", "Rating", "Address", "Amenities", "Thumbnail"]
+        hotel_table_columns = ["Name", "Price per Night", "Total Price", "Rating", "Address", "Amenities"]
         self.hotel_table_label = QLabel("Hotels")
         self.hotel_table = QTableWidget(self)
         self.hotel_table.setColumnCount(len(hotel_table_columns))
@@ -488,7 +488,7 @@ class FlightSearchApp(QWidget):
             self.hotel_table.item(0, i).setBackground(QColor(30,38,64))
         self.hotel_table.horizontalHeader().setVisible(False)
         self.hotel_table.verticalHeader().setVisible(False)
-        # self.hotel_table.cellClicked.connect()
+        self.hotel_table.cellClicked.connect(self.on_hotel_row_clicked)
         self.hotel_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.hotel_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.hotel_table.setShowGrid(False)
@@ -674,36 +674,67 @@ class FlightSearchApp(QWidget):
         self.current_flight_data = flight_data
 
     def on_hotel_search_clicked(self):
+        # Clear previous search results
+        for i in range(1, self.hotel_table.rowCount()):
+                self.hotel_table.removeRow(1)
 
         # Retrieve input values
-        # location = self.hotel_location_entry.text().upper()
-        # check_in_date = self.hotel_in_date_entry.text().upper()
-        # check_out_date = self.hotel_out_date_entry.text()
-        # currency = self.hotel_currency_entry.currentText()
-        # max_price = None if self.hotel_cost_max_entry.text() == "-" else self.hotel_cost_max_entry.text()  # Optional maximum price input
-        # min_price = None if self.hotel_cost_min_entry.text() == "-" else self.hotel_cost_min_entry.text() # Optional minimum price input
-        # min_rating = None if self.hotel_rating_min_entry.text() == "-" else self.hotel_rating_min_entry.text() # Optional minimum rating input
-        # amenities = None if self.hotel_amenities == [] else self.hotel_amenities # Optional amenities input
+        location = self.hotel_location_entry.text()
+        check_in_date = self.hotel_in_date_entry.text()
+        check_out_date = self.hotel_out_date_entry.text()
+        currency = self.hotel_currency_entry.currentText()
+        max_price = None if self.hotel_cost_max_entry.text() == "-" else self.hotel_cost_max_entry.text()  # Optional maximum price input
+        min_price = None if self.hotel_cost_min_entry.text() == "-" else self.hotel_cost_min_entry.text() # Optional minimum price input
+        min_rating = None if self.hotel_rating_min_entry.text() == "-" else self.hotel_rating_min_entry.text() # Optional minimum rating input
+        amenities = None if self.hotel_amenities == [] else self.hotel_amenities # Optional amenities input
 
         # Check for required fields
-        # if not all([departure_id, arrival_id, departure_date, return_date, currency]):
-        #     QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
-        #     return
+        if not all([location, check_in_date, check_out_date, currency]):
+            QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
+            return
 
-        # # Check date validity
-        # if self.hotel_in_date_entry.dateTime() < self.hotel_out_date_entry.dateTime():
-        #     QMessageBox.warning(self, "Input Error", "Please ensure return date is not before departure date.")
-        #     return
+        # Check date validity
+        if self.hotel_in_date_entry.dateTime() > self.hotel_out_date_entry.dateTime():
+            QMessageBox.warning(self, "Input Error", "Please ensure check-out date is not before check-in date.")
+            return
 
-        # Get hotel data with optional parameters
-        # flight_data = search_hotels(
-        #     location, check_in_date, check_out_date, 
-        #     currency="USD", 
-        #     max_price=None, 
-        #     min_price=None, 
-        #     min_rating=None, 
-        #     amenities=None
-        # )
+        #Get hotel data with optional parameters
+        hotel_data = search_hotels(
+            location, check_in_date, check_out_date, currency, 
+            max_price= max_price if max_price else None, 
+            min_price= min_price if min_price else None, 
+            min_rating= min_rating if min_rating else None, 
+            amenities=None
+        )
+
+        # Handle no results or errors
+        if not hotel_data or isinstance(hotel_data, str):
+            QMessageBox.information(self, "No Results", str(hotel_data) if hotel_data else "No hotels found.")
+            return
+
+        # Display flight options in the list
+
+        for hotel in hotel_data:
+            pprint(hotel)
+            # self.flight_departure_token_list.append(flight['departure_token'])
+
+            # Add flight information into the table ["Name", "Price per Night", "Total Price", "Rating", "Address", "Amenities"]
+            format_string = "%Y-%m-%d %H:%M"
+            rowPosition = self.hotel_table.rowCount()
+            self.hotel_table.insertRow(rowPosition)
+            self.hotel_table.setItem(rowPosition , 0, QTableWidgetItem(hotel['name']))
+            self.hotel_table.setItem(rowPosition , 1, QTableWidgetItem("$" + str(hotel['price_per_night'])))
+            self.hotel_table.setItem(rowPosition , 2, QTableWidgetItem("$" + str(hotel['total_price'])))
+            self.hotel_table.setItem(rowPosition , 3, QTableWidgetItem(str(hotel['rating'])))
+            self.hotel_table.setItem(rowPosition , 4, QTableWidgetItem(str(hotel['address']['latitude']) + str(hotel['address']['longitude'])))
+            self.hotel_table.setItem(rowPosition , 5, QTableWidgetItem(str(hotel['amenities'])))
+            # self.hotel_table.setItem(rowPosition , 6, QTableWidgetItem(self.date_to_mmm(flight['flights'][0]['arrival_time'])))
+            # self.hotel_table.setItem(rowPosition , 7, QTableWidgetItem(flight['flights'][0]['travel_class']))
+
+        # Save the flight data to display when an item is selected
+        # self.current_flight_data = flight_data
+
+
         pass
 
     def on_departure_date_calendar_clicked(self):
@@ -755,6 +786,10 @@ class FlightSearchApp(QWidget):
             # print(self.all_airports)
         except:
             print("No airports found.")
+
+    def on_hotel_row_clicked(self, row, column):
+        if row > 0:
+            self.hotel_table.selectRow(row)
 
     def on_return_flight_row_clicked(self, row, column):
         if row > 0:
