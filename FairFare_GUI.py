@@ -1,5 +1,7 @@
 import sys
 
+import time
+
 from qrangeslider import QRangeSlider
 
 from pprint import pprint
@@ -18,6 +20,7 @@ from Google_Flights_Scraper import search_flights  # Import the flight search fu
 from Google_Hotel_Scraper import search_hotels
 
 import requests
+import json
 from bs4 import BeautifulSoup
 from pprint import pprint
 import re
@@ -99,6 +102,10 @@ class FlightSearchApp(QWidget):
 
         self.get_all_airports()
 
+        self.all_currencies = json.load(open("google-travel-currencies.json"))
+        self.all_countries = json.load(open("google-countries.json"))
+
+
         ##############################################################################################################
         #   BEGIN FLIGHT PAGE
         ##############################################################################################################
@@ -146,7 +153,6 @@ class FlightSearchApp(QWidget):
         flight_ret_date_layout.addWidget(self.flight_return_date_entry)
 
             # Currency parameter
-        self.get_all_currencies()
         self.flight_currency_entry = QComboBox(self)
         self.flight_currency_entry.addItems(self.all_currencies.keys())
         self.flight_currency_entry.setCurrentText('USD')
@@ -269,7 +275,7 @@ class FlightSearchApp(QWidget):
 
         # Table widget for departure flight information
 
-        departure_flight_table_columns = ["Airline", "Price", "Type", "Departure", "Departure Date", "Arrival", "Arrival Date", "Travel Class"]
+        departure_flight_table_columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class"]
         self.departure_flight_table_label = QLabel("Departure Flights")
         self.departure_flight_table = QTableWidget(self)
         self.departure_flight_table.setColumnCount(len(departure_flight_table_columns))
@@ -287,7 +293,7 @@ class FlightSearchApp(QWidget):
 
         # Table widget for return flight information
 
-        return_flight_table_columns = ["Airline", "Price", "Type", "Departure", "Departure Date", "Arrival", "Arrival Date", "Travel Class"]
+        return_flight_table_columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class"]
         self.return_flight_table_label = QLabel("Return Flights")
         self.return_flight_table = QTableWidget(self)
         self.return_flight_table.setColumnCount(len(return_flight_table_columns))
@@ -297,7 +303,7 @@ class FlightSearchApp(QWidget):
             self.return_flight_table.item(0, i).setBackground(QColor(30,38,64))
         self.return_flight_table.horizontalHeader().setVisible(False)
         self.return_flight_table.verticalHeader().setVisible(False)
-        # self.return_flight_table.cellClicked.connect(self.on_return_flight_row_clicked)
+        self.return_flight_table.cellClicked.connect(self.on_return_flight_row_clicked)
         self.return_flight_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.return_flight_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.return_flight_table.setShowGrid(False)
@@ -309,13 +315,13 @@ class FlightSearchApp(QWidget):
         airport_code_layout.addLayout(flight_dep_airport_layout)
         airport_code_layout.addLayout(flight_arr_airport_layout)
 
-        date_layout = QHBoxLayout()
-        date_layout.addLayout(flight_out_date_layout)
-        date_layout.addLayout(flight_ret_date_layout)
+        flight_date_layout = QHBoxLayout()
+        flight_date_layout.addLayout(flight_out_date_layout)
+        flight_date_layout.addLayout(flight_ret_date_layout)
 
-        code_and_date_layout = QHBoxLayout()
-        code_and_date_layout.addLayout(airport_code_layout)
-        code_and_date_layout.addLayout(date_layout)
+        flight_code_and_date_layout = QHBoxLayout()
+        flight_code_and_date_layout.addLayout(airport_code_layout)
+        flight_code_and_date_layout.addLayout(flight_date_layout)
         
         flight_info_layout = QHBoxLayout()
         # flight_info_layout.addWidget(self.departure_flight_list)
@@ -323,40 +329,40 @@ class FlightSearchApp(QWidget):
         # self.departure_flight_list.setVisible(False)
         self.flight_details.setVisible(False)
 
-        left_panel_layout = QVBoxLayout()
-        left_panel_layout.addLayout(flight_trip_layout)
-        left_panel_layout.addWidget(QLabel(" "))
-        left_panel_layout.addLayout(flight_time_layout)
-        left_panel_layout.addWidget(QLabel(" "))
-        left_panel_layout.addLayout(flight_cost_layout)
-        left_panel_layout.addWidget(QLabel(" "))
-        left_panel_layout.addLayout(flight_currency_layout)
-        left_panel_layout.addWidget(QLabel(" "))
-        left_panel_layout.addLayout(flight_exclude_layout)
-        left_panel_layout.setSpacing(0)
+        flight_left_panel_layout = QVBoxLayout()
+        flight_left_panel_layout.addLayout(flight_trip_layout)
+        flight_left_panel_layout.addWidget(QLabel(" "))
+        flight_left_panel_layout.addLayout(flight_time_layout)
+        flight_left_panel_layout.addWidget(QLabel(" "))
+        flight_left_panel_layout.addLayout(flight_cost_layout)
+        flight_left_panel_layout.addWidget(QLabel(" "))
+        flight_left_panel_layout.addLayout(flight_currency_layout)
+        flight_left_panel_layout.addWidget(QLabel(" "))
+        flight_left_panel_layout.addLayout(flight_exclude_layout)
+        flight_left_panel_layout.setSpacing(0)
 
-        self.left_panel = QFrame(self)
-        self.left_panel.setLayout(left_panel_layout)
-        self.left_panel.setFixedWidth(200)
-        self.left_panel.setStyleSheet(QLABEL_LEFT)
-        self.left_panel.setFixedHeight(LEFT_PANEL_HEIGHT)
+        self.flight_left_panel = QFrame(self)
+        self.flight_left_panel.setLayout(flight_left_panel_layout)
+        self.flight_left_panel.setFixedWidth(200)
+        self.flight_left_panel.setStyleSheet(QLABEL_LEFT)
+        self.flight_left_panel.setFixedHeight(LEFT_PANEL_HEIGHT)
 
 
-        main_panel_layout = QVBoxLayout()
-        main_panel_layout.addLayout(code_and_date_layout)
-        main_panel_layout.addWidget(flight_search_button)
-        main_panel_layout.addLayout(flight_info_layout)
-        main_panel_layout.addWidget(self.departure_flight_table_label)
-        main_panel_layout.addWidget(self.departure_flight_table)
-        main_panel_layout.addWidget(self.return_flight_table_label)
-        main_panel_layout.addWidget(self.return_flight_table)
+        flight_main_panel_layout = QVBoxLayout()
+        flight_main_panel_layout.addLayout(flight_code_and_date_layout)
+        flight_main_panel_layout.addWidget(flight_search_button)
+        flight_main_panel_layout.addLayout(flight_info_layout)
+        flight_main_panel_layout.addWidget(self.departure_flight_table_label)
+        flight_main_panel_layout.addWidget(self.departure_flight_table)
+        flight_main_panel_layout.addWidget(self.return_flight_table_label)
+        flight_main_panel_layout.addWidget(self.return_flight_table)
 
-        self.main_panel = QFrame(self)
-        self.main_panel.setLayout(main_panel_layout)
+        self.flight_main_panel = QFrame(self)
+        self.flight_main_panel.setLayout(flight_main_panel_layout)
 
         flight_frame_layout = QHBoxLayout()
-        flight_frame_layout.addWidget(self.left_panel)
-        flight_frame_layout.addWidget(self.main_panel)
+        flight_frame_layout.addWidget(self.flight_left_panel)
+        flight_frame_layout.addWidget(self.flight_main_panel)
 
         self.flight_frame = QFrame(self)
         self.flight_frame.setLayout(flight_frame_layout)
@@ -373,45 +379,151 @@ class FlightSearchApp(QWidget):
 
         self.hotel_location_entry = QLineEdit(self)
         self.hotel_location_entry.setPlaceholderText("Hotel Location")
-        self.hotel_in_date_entry = QLineEdit(self)
-        self.hotel_in_date_entry.setPlaceholderText("Check-In Date")
-        self.hotel_out_date_entry = QLineEdit(self)
-        self.hotel_out_date_entry.setPlaceholderText("Check-Out Date")
-        self.hotel_currency_entry = QLineEdit(self)
-        self.hotel_currency_entry.setPlaceholderText("Currency")
-        self.hotel_cost_max_entry = QLineEdit(self)
-        self.hotel_cost_max_entry.setPlaceholderText("Max Cost")
-        self.hotel_cost_min_entry = QLineEdit(self)
-        self.hotel_cost_min_entry.setPlaceholderText("Min Cost")
-        self.hotel_rating_min_entry = QLineEdit(self)
-        self.hotel_rating_min_entry.setPlaceholderText("Min Rating")
+
+        hotel_location_layout = QVBoxLayout()
+        hotel_location_layout.addWidget(QLabel("Location:"))
+        hotel_location_layout.addWidget(self.hotel_location_entry)
         
+            # Check-In Date parameter
+        self.hotel_in_date_entry = QDateTimeEdit(self)
+        self.hotel_in_date_entry.setCalendarPopup(True)
+        self.hotel_in_date_entry.setDate(QDate.currentDate())
+        self.hotel_in_date_entry.setDisplayFormat('yyyy-MM-dd')
+
+                # Parameter layout
+        hotel_in_date_layout = QVBoxLayout()
+        hotel_in_date_layout.addWidget(QLabel("Check-In Date:"))
+        hotel_in_date_layout.addWidget(self.hotel_in_date_entry)
+
+            # Check-Out Date parameter
+        self.hotel_out_date_entry = QDateTimeEdit(self)
+        self.hotel_out_date_entry.setCalendarPopup(True)
+        self.hotel_out_date_entry.setDate(QDate.currentDate())
+        self.hotel_out_date_entry.setDisplayFormat('yyyy-MM-dd')
+        # self.flight_return_date_entry.setEnabled(False)
+
+                # Parameter Layout
+        hotel_out_date_layout = QVBoxLayout()
+        hotel_out_date_layout.addWidget(QLabel("Check-Out Date:"))
+        hotel_out_date_layout.addWidget(self.hotel_out_date_entry)
+
+        hotel_date_layout = QHBoxLayout()
+        hotel_date_layout.addLayout(hotel_in_date_layout)
+        hotel_date_layout.addLayout(hotel_out_date_layout)
+
+        hotel_loc_and_date_layout = QHBoxLayout()
+        hotel_loc_and_date_layout.addLayout(hotel_location_layout)
+        hotel_loc_and_date_layout.addLayout(hotel_date_layout)
+
+            # Currency parameter
+        self.hotel_currency_entry = QComboBox(self)
+        self.hotel_currency_entry.addItems(self.all_currencies.keys())
+        self.hotel_currency_entry.setCurrentText('USD')
+
+                # Parameter Layout
+        hotel_currency_entry_layout = QVBoxLayout()
+        hotel_currency_entry_layout.addWidget(QLabel("Currency:"))
+        hotel_currency_entry_layout.addWidget(self.hotel_currency_entry)
+
+            # Min and Max Cost Time
+        self.hotel_cost_min_entry = QLineEdit(self)
+        self.hotel_cost_min_entry.setPlaceholderText("-")
+
+        hotel_cost_min_layout = QVBoxLayout()
+        hotel_cost_min_layout.addWidget(QLabel("Min"))
+        hotel_cost_min_layout.addWidget(self.hotel_cost_min_entry)
+
+        self.hotel_cost_max_entry = QLineEdit(self)
+        self.hotel_cost_max_entry.setPlaceholderText("-")
+
+        hotel_cost_max_layout = QVBoxLayout()
+        hotel_cost_max_layout.addWidget(QLabel("Max"))
+        hotel_cost_max_layout.addWidget(self.hotel_cost_max_entry)
+
+        hotel_cost_range_layout = QHBoxLayout()
+        hotel_cost_range_layout.addLayout(hotel_cost_min_layout)
+        hotel_cost_range_layout.addWidget(QLabel(" - "))
+        hotel_cost_range_layout.addLayout(hotel_cost_max_layout)
+
+        hotel_cost_layout = QVBoxLayout()
+        hotel_cost_layout.addWidget(QLabel("Cost ($)"))
+        hotel_cost_layout.addLayout(hotel_cost_range_layout)
+
+            # Min and Max Ratings
+        self.hotel_rating_min_entry = QLineEdit(self)
+        self.hotel_rating_min_entry.setPlaceholderText("-")
+
+        hotel_rating_min_layout = QVBoxLayout()
+        hotel_rating_min_layout.addWidget(QLabel("Min"))
+        hotel_rating_min_layout.addWidget(self.hotel_rating_min_entry)
+
+        self.hotel_rating_max_entry = QLineEdit(self)
+        self.hotel_rating_max_entry.setPlaceholderText("-")
+
+        hotel_rating_max_layout = QVBoxLayout()
+        hotel_rating_max_layout.addWidget(QLabel("Max"))
+        hotel_rating_max_layout.addWidget(self.hotel_rating_max_entry)
+
+        hotel_rating_range_layout = QHBoxLayout()
+        hotel_rating_range_layout.addLayout(hotel_rating_min_layout)
+        hotel_rating_range_layout.addWidget(QLabel(" - "))
+        hotel_rating_range_layout.addLayout(hotel_rating_max_layout)
+
+        hotel_rating_layout = QVBoxLayout()
+        hotel_rating_layout.addWidget(QLabel("Rating"))
+        hotel_rating_layout.addLayout(hotel_rating_range_layout)
+
         self.hotel_amenities = []
 
-        # hotel_table_columns = ["Airline", "Price", "Type", "Departure", "Departure Date", "Arrival", "Arrival Date", "Travel Class"]
-        # self.hotel_table_label = QLabel("Hotels")
-        # self.hotel_table = QTableWidget(self)
-        # self.hotel_table.setColumnCount(len(hotel_table_columns))
-        # self.hotel_table.setRowCount(1)
-        # for i in range(self.hotel_table.columnCount()):
-        #     self.hotel_table.setItem(0 , i, QTableWidgetItem(hotel_table_columns[i]))
-        #     self.hotel_table.item(0, i).setBackground(QColor(30,38,64))
-        # self.hotel_table.horizontalHeader().setVisible(False)
-        # self.hotel_table.verticalHeader().setVisible(False)
-        # # self.hotel_table.cellClicked.connect()
-        # self.hotel_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        # self.hotel_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        # self.hotel_table.setShowGrid(False)
+        hotel_search_button = QPushButton("Search Hotels", self)
+        # hotel_search_button.clicked.connect(self.on_search_clicked)
 
-        hotel_frame_layout = QVBoxLayout()
-        hotel_frame_layout.addWidget(self.hotel_temp_page)
-        hotel_frame_layout.addWidget(self.hotel_location_entry)
-        hotel_frame_layout.addWidget(self.hotel_in_date_entry)
-        hotel_frame_layout.addWidget(self.hotel_out_date_entry)
-        hotel_frame_layout.addWidget(self.hotel_currency_entry)
-        hotel_frame_layout.addWidget(self.hotel_cost_max_entry)
-        hotel_frame_layout.addWidget(self.hotel_cost_min_entry)
-        hotel_frame_layout.addWidget(self.hotel_rating_min_entry)
+        hotel_table_columns = ["Name", "Price per Night", "Total Price", "Rating", "Address", "Amenities", "Thumbnail"]
+        self.hotel_table_label = QLabel("Hotels")
+        self.hotel_table = QTableWidget(self)
+        self.hotel_table.setColumnCount(len(hotel_table_columns))
+        self.hotel_table.setRowCount(1)
+        for i in range(self.hotel_table.columnCount()):
+            self.hotel_table.setItem(0 , i, QTableWidgetItem(hotel_table_columns[i]))
+            self.hotel_table.item(0, i).setBackground(QColor(30,38,64))
+        self.hotel_table.horizontalHeader().setVisible(False)
+        self.hotel_table.verticalHeader().setVisible(False)
+        # self.hotel_table.cellClicked.connect()
+        self.hotel_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.hotel_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.hotel_table.setShowGrid(False)
+
+        hotel_table_layout = QVBoxLayout()
+        hotel_table_layout.addWidget(self.hotel_table)
+        hotel_table_layout.addWidget(self.hotel_table_label)
+
+        hotel_left_panel_layout = QVBoxLayout()
+        hotel_left_panel_layout.addLayout(hotel_cost_layout)
+        hotel_left_panel_layout.addWidget(QLabel(" "))
+        hotel_left_panel_layout.addLayout(hotel_rating_layout)
+        hotel_left_panel_layout.addWidget(QLabel(" "))
+        hotel_left_panel_layout.addLayout(hotel_currency_entry_layout)
+        hotel_left_panel_layout.addWidget(QLabel(" "))
+        hotel_left_panel_layout.setSpacing(0)
+
+        self.hotel_left_panel = QFrame(self)
+        self.hotel_left_panel.setLayout(hotel_left_panel_layout)
+        self.hotel_left_panel.setFixedWidth(200)
+        self.hotel_left_panel.setStyleSheet(QLABEL_LEFT)
+        self.hotel_left_panel.setFixedHeight(LEFT_PANEL_HEIGHT)
+
+        hotel_main_panel_layout = QVBoxLayout()
+        hotel_main_panel_layout.addWidget(self.hotel_temp_page)
+        hotel_main_panel_layout.addLayout(hotel_loc_and_date_layout)
+        hotel_main_panel_layout.addWidget(hotel_search_button)
+        hotel_main_panel_layout.addLayout(hotel_table_layout)
+
+        self.hotel_main_panel = QFrame(self)
+        self.hotel_main_panel.setLayout(hotel_main_panel_layout)
+
+        hotel_frame_layout = QHBoxLayout()
+        hotel_frame_layout.addWidget(self.hotel_left_panel)
+        hotel_frame_layout.addWidget(self.hotel_main_panel)
 
         self.hotel_frame = QFrame(self)
         self.hotel_frame.setLayout(hotel_frame_layout)
@@ -492,18 +604,37 @@ class FlightSearchApp(QWidget):
         departure_date = self.flight_departure_date_entry.text()
         return_date = self.flight_return_date_entry.text()
         currency = self.flight_currency_entry.currentText()
-        max_cost = None if self.flight_cost_max_entry.text() == "-" else self.flight_cost_max_entry.text()  # Optional max cost input
-        min_time = None if self.flight_time_min_entry.text() == "-" else self.flight_time_min_entry.text() # Optional minimum time input
-        max_time = None if self.flight_time_max_entry.text() == "-" else self.flight_time_max_entry.text() # Optional maximum time input
+        max_cost = None if self.flight_cost_max_entry.text() == "" else self.flight_cost_max_entry.text()  # Optional max cost input
+        min_time = None if self.flight_time_min_entry.text() == "" else self.flight_time_min_entry.text() # Optional minimum time input
+        max_time = None if self.flight_time_max_entry.text() == "" else self.flight_time_max_entry.text() # Optional maximum time input
+
+        # # Check for required fields
+        # if not all([departure_id, arrival_id, departure_date, return_date, currency]):
+        #     QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
+        #     return
+            
+        # Check date validity
+        if self.flight_return_date_entry.dateTime() < self.flight_departure_date_entry.dateTime():
+            QMessageBox.warning(self, "Input Error", "Please ensure return date is not before departure date.")
+            return
+
+        # Check cost validity
+        if (not self.flight_cost_min_entry.text().isnumeric() and self.flight_cost_min_entry.text())\
+            or\
+            (not self.flight_cost_max_entry.text().isnumeric() and self.flight_cost_max_entry.text()):
+            QMessageBox.warning(self, "Input Error", "Please ensure costs are numeric values.")
+            return
+
+        # Check time validity
+        if (not self.flight_time_min_entry.text().isnumeric() and self.flight_time_min_entry.text())\
+            or\
+            (not self.flight_time_max_entry.text().isnumeric() and self.flight_time_max_entry.text()):
+            QMessageBox.warning(self, "Input Error", "Please ensure flight times are numeric values.")
+            return
 
         # Check for required fields
         if not all([departure_id, arrival_id, departure_date, return_date, currency]):
             QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
-            return
-
-        # Check date validity
-        if self.flight_return_date_entry.dateTime() < self.flight_departure_date_entry.dateTime():
-            QMessageBox.warning(self, "Input Error", "Please ensure return date is not before departure date.")
             return
 
         # Get flight data with optional parameters
@@ -578,12 +709,12 @@ class FlightSearchApp(QWidget):
     def on_departure_date_calendar_clicked(self):
     # Toggle calendar widget once clicked
         self.flight_departure_date_entry.setText(self.departure_date_calendar.selectedDate().toString())
-        self.departure_date_calendar.setVisible(False)
+        self.flight_departure_date_calendar.setVisible(False)
 
     def on_return_date_calendar_clicked(self):
     # Toggle calendar widget once clicked
         self.flight_return_date_entry.setText(self.return_date_calendar.selectedDate().toString())
-        self.return_date_calendar.setVisible(False)
+        self.flight_return_date_calendar.setVisible(False)
 
     def on_radio_button_toggled(self):
         radio_button = self.sender()
@@ -613,99 +744,115 @@ class FlightSearchApp(QWidget):
             self.flight_frame.setVisible(False)
             self.hotel_frame.setVisible(True)
 
-    def get_all_currencies(self):
-    # Get all currency abbreviations and names
-        r = requests.get("https://developers.google.com/adsense/management/appendix/currencies")
-        soup = BeautifulSoup(r.text, "html.parser")
-        rows = soup.find_all('tr')
-        self.all_currencies = {r.find_all('td')[0].text: r.find_all('td')[1].text for r in rows if "(" not in r.find_all('td')[1].text}
-
     def get_all_airports(self):
     # Get all airport abbreviations and names
-        # r = requests.get("https://www.bts.gov/topics/airlines-and-airports/world-airport-codes")
-        # soup = BeautifulSoup(r.text, "html.parser")
-        # rows = table.find_all('tr')
-        # self.all_airports = {i.find_all('td')[0].text : {'City':i.find_all('td')[1].text.split(': ')[0], 'Airport':i.find_all('td')[1].text.split(': ')[0]} for i in rows}
-        pass
+        try:
+            r = requests.get("https://www.bts.gov/topics/airlines-and-airports/world-airport-codes")
+            soup = BeautifulSoup(r.text, "html.parser")
+            rows = table.find_all('tr')
+            self.all_airports = {i.find_all('td')[0].text : {'City':i.find_all('td')[1].text.split(': ')[0], 'Airport':i.find_all('td')[1].text.split(': ')[0]} for i in rows}
+        except:
+            print("No airports found.")
 
     def on_return_flight_row_clicked(self, row, column):
-        self.return_flight_table.selectRow(row)
+        if row > 0:
+            self.return_flight_table.selectRow(row)
 
     def on_departure_flight_row_clicked(self, row, column):
-        self.departure_flight_table.selectRow(row)
-        # print(self.flight_departure_token_list)
-        self.departure_token = self.flight_departure_token_list[row - 1]
+        if row > 0:
+            self.departure_flight_table.selectRow(row)
+            # print(self.flight_departure_token_list)
+            self.departure_token = self.flight_departure_token_list[row - 1]
 
-        print(self.flight_departure_token_list)
-        print(self.departure_token)
-        pprint("===============RETURN FLIGHTS==================")
+            print(self.flight_departure_token_list)
+            print(self.departure_token)
+            pprint("===============RETURN FLIGHTS==================")
 
-        ###################################################################################################################
-        # RETURN FLIGHT INFORMATION
-        ###################################################################################################################
-        if self.flight_trip_type == "Round Trip" and self.departure_token != "":
-            # Clear previous search results
-            for i in range(1, self.return_flight_table.rowCount()):
-                self.return_flight_table.removeRow(1)
+            ###################################################################################################################
+            # RETURN FLIGHT INFORMATION
+            ###################################################################################################################
+            if self.flight_trip_type == "Round Trip" and self.departure_token != "":
+                # Clear previous search results
+                for i in range(1, self.return_flight_table.rowCount()):
+                    self.return_flight_table.removeRow(1)
 
-            # Retrieve input values
-            departure_id = self.flight_departure_entry.text().upper()
-            arrival_id = self.flight_arrival_entry.text().upper()
-            departure_date = self.flight_departure_date_entry.text()
-            return_date = self.flight_return_date_entry.text()
-            currency = self.flight_currency_entry.currentText()
-            max_cost = None if self.flight_cost_max_entry.text() == "-" else self.flight_cost_max_entry.text()  # Optional max cost input
-            min_time = None if self.flight_time_min_entry.text() == "-" else self.flight_time_min_entry.text() # Optional minimum time input
-            max_time = None if self.flight_time_max_entry.text() == "-" else self.flight_time_max_entry.text() # Optional maximum time input
-            departure_token = self.departure_token
-            print(departure_token)
+                # Retrieve input values
+                departure_id = self.flight_departure_entry.text().upper()
+                arrival_id = self.flight_arrival_entry.text().upper()
+                departure_date = self.flight_departure_date_entry.text()
+                return_date = self.flight_return_date_entry.text()
+                currency = self.flight_currency_entry.currentText()
+                max_cost = None if self.flight_cost_max_entry.text() == "" else self.flight_cost_max_entry.text()  # Optional max cost input
+                min_time = None if self.flight_time_min_entry.text() == "" else self.flight_time_min_entry.text() # Optional minimum time input
+                max_time = None if self.flight_time_max_entry.text() == "" else self.flight_time_max_entry.text() # Optional maximum time input
+                departure_token = self.departure_token
+                print(departure_token)
 
-            self.return_flight_table.setShowGrid(False)
+                self.return_flight_table.setShowGrid(False)
 
-            # Check for required fields
-            if not all([departure_id, arrival_id, departure_date, return_date, currency]):
-                QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
-                return
-                
-            # Check date validity
-            if self.flight_return_date_entry.dateTime() < self.flight_departure_date_entry.dateTime():
-                QMessageBox.warning(self, "Input Error", "Please ensure return date is not before departure date.")
-                return
+                # # Check for required fields
+                # if not all([departure_id, arrival_id, departure_date, return_date, currency]):
+                #     QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
+                #     return
+                    
+                # Check date validity
+                if self.flight_return_date_entry.dateTime() < self.flight_departure_date_entry.dateTime():
+                    QMessageBox.warning(self, "Input Error", "Please ensure return date is not before departure date.")
+                    return
 
-            # Get flight data with optional parameters
-            flight_data = search_flights(
-                departure_id, arrival_id, departure_date, return_date, currency,
-                max_price=max_cost if max_cost else None,
-                min_time=min_time if min_time else None,
-                max_time=max_time if max_time else None,
-                departure_token=departure_token
-            )
+                # Check cost validity
+                if (not self.flight_cost_min_entry.text().isnumeric() and self.flight_cost_min_entry.text())\
+                    or\
+                    (not self.flight_cost_max_entry.text().isnumeric() and self.flight_cost_max_entry.text()):
+                    QMessageBox.warning(self, "Input Error", "Please ensure costs are numeric values.")
+                    return
 
-            # Handle no results or errors
-            if not flight_data or isinstance(flight_data, str):
-                QMessageBox.information(self, "No Results", str(flight_data) if flight_data else "No flights found.")
-                return
+                # Check time validity
+                if (not self.flight_time_min_entry.text().isnumeric() and self.flight_time_min_entry.text())\
+                    or\
+                    (not self.flight_time_max_entry.text().isnumeric() and self.flight_time_max_entry.text()):
+                    QMessageBox.warning(self, "Input Error", "Please ensure flight times are numeric values.")
+                    return
 
-            # Display flight options in the list
+                # Check for required fields
+                if not all([departure_id, arrival_id, departure_date, return_date, currency]):
+                    QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
+                    return
 
-            for flight in flight_data:
-                pprint(flight)
+                # Get flight data with optional parameters
+                flight_data = search_flights(
+                    departure_id, arrival_id, departure_date, return_date, currency,
+                    max_price=max_cost if max_cost else None,
+                    min_time=min_time if min_time else None,
+                    max_time=max_time if max_time else None,
+                    departure_token=departure_token
+                )
 
-                # Add flight information into the table ["Airline", "Price", "Type", "Departure", "Arrival", "Travel Class"]
-                format_string = "%Y-%m-%d %H:%M"
-                rowPosition = self.return_flight_table.rowCount()
-                self.return_flight_table.insertRow(rowPosition)
-                self.return_flight_table.setItem(rowPosition , 0, QTableWidgetItem(flight['flights'][0]['airline']))
-                self.return_flight_table.setItem(rowPosition , 1, QTableWidgetItem("$" + str(flight['price'])))
-                self.return_flight_table.setItem(rowPosition , 2, QTableWidgetItem(flight['type']))
-                self.return_flight_table.setItem(rowPosition , 3, QTableWidgetItem(self.time_to_12(flight['flights'][0]['departure_time'])))
-                self.return_flight_table.setItem(rowPosition , 4, QTableWidgetItem(self.date_to_mmm(flight['flights'][0]['departure_time'])))
-                self.return_flight_table.setItem(rowPosition , 5, QTableWidgetItem(self.time_to_12(flight['flights'][-1]['arrival_time'])))
-                self.return_flight_table.setItem(rowPosition , 6, QTableWidgetItem(self.date_to_mmm(flight['flights'][0]['arrival_time'])))
-                self.return_flight_table.setItem(rowPosition , 7, QTableWidgetItem(flight['flights'][0]['travel_class']))
+                # Handle no results or errors
+                if not flight_data or isinstance(flight_data, str):
+                    QMessageBox.information(self, "No Results", str(flight_data) if flight_data else "No flights found.")
+                    return
 
-        else:
-            print("Not a round trip.")
+                # Display flight options in the list
+
+                for flight in flight_data:
+                    pprint(flight)
+
+                    # Add flight information into the table ["Airline", "Price", "Type", "Departure", "Arrival", "Travel Class"]
+                    format_string = "%Y-%m-%d %H:%M"
+                    rowPosition = self.return_flight_table.rowCount()
+                    self.return_flight_table.insertRow(rowPosition)
+                    self.return_flight_table.setItem(rowPosition , 0, QTableWidgetItem(flight['flights'][0]['airline']))
+                    self.return_flight_table.setItem(rowPosition , 1, QTableWidgetItem("$" + str(flight['price'])))
+                    self.return_flight_table.setItem(rowPosition , 2, QTableWidgetItem(flight['type']))
+                    self.return_flight_table.setItem(rowPosition , 3, QTableWidgetItem(self.time_to_12(flight['flights'][0]['departure_time'])))
+                    self.return_flight_table.setItem(rowPosition , 4, QTableWidgetItem(self.date_to_mmm(flight['flights'][0]['departure_time'])))
+                    self.return_flight_table.setItem(rowPosition , 5, QTableWidgetItem(self.time_to_12(flight['flights'][-1]['arrival_time'])))
+                    self.return_flight_table.setItem(rowPosition , 6, QTableWidgetItem(self.date_to_mmm(flight['flights'][0]['arrival_time'])))
+                    self.return_flight_table.setItem(rowPosition , 7, QTableWidgetItem(flight['flights'][0]['travel_class']))
+
+            else:
+                print("Not a round trip.")
 
             # Save the flight data to display when an item is selected
             # self.current_flight_data = flight_data
