@@ -18,6 +18,7 @@ from PyQt5.QtGui import (
 )
 from Google_Flights_Scraper import search_flights  # Import the flight search function
 from Google_Hotel_Scraper import search_hotels
+from distance_calc import calculate_distance
 
 import requests
 import json
@@ -489,7 +490,7 @@ class FlightSearchApp(QWidget):
         hotel_search_button = QPushButton("Search Hotels", self)
         hotel_search_button.clicked.connect(self.on_hotel_search_clicked)
 
-        hotel_table_columns = ["Name", "Price per Night", "Total Price", "Rating", "Address", "Amenities"]
+        hotel_table_columns = ["Name", "Price per Night", "Total Price", "Rating", "Distance from Airport", "Amenities"]
         self.hotel_table_label = QLabel("Hotels")
         self.hotel_table = QTableWidget(self)
         self.hotel_table.setColumnCount(len(hotel_table_columns))
@@ -717,6 +718,9 @@ class FlightSearchApp(QWidget):
         min_price = None if self.hotel_cost_min_entry.text() == "-" else self.hotel_cost_min_entry.text() # Optional minimum price input
         min_rating = None if self.hotel_rating_min_entry.text() == "-" else self.hotel_rating_min_entry.text() # Optional minimum rating input
         amenities = None if self.hotel_amenities == [] else self.hotel_amenities # Optional amenities input
+        # airport_code = self.departure_entry.text()  # Assuming there's an entry for the airport code
+        airport_code = self.flight_arrival_entry.text().upper()
+
 
         # Check for required fields
         if not all([location, check_in_date, check_out_date, currency]):
@@ -746,6 +750,22 @@ class FlightSearchApp(QWidget):
 
         for hotel in hotel_data:
             pprint(hotel)
+
+            # Check if coordinates are available in the hotel data
+            if "latitude" in hotel and "longitude" in hotel and hotel["latitude"] and hotel["longitude"]:
+                hotel_lat = float(hotel["latitude"])
+                hotel_lon = float(hotel["longitude"])
+                
+                #distance calculating
+                try:
+                    distance = calculate_distance(airport_code, hotel_lat, hotel_lon)
+                    distance_str = f"{distance:.2f} miles"
+
+                except ValueError as e:
+                    distance_str = "Distance unavailable."
+            else:
+                distance_str = "Distance unavailable."
+
             # self.flight_departure_token_list.append(flight['departure_token'])
 
             # Add flight information into the table ["Name", "Price per Night", "Total Price", "Rating", "Address", "Amenities"]
@@ -753,10 +773,11 @@ class FlightSearchApp(QWidget):
             rowPosition = self.hotel_table.rowCount()
             self.hotel_table.insertRow(rowPosition)
             self.hotel_table.setItem(rowPosition , 0, QTableWidgetItem(hotel['name']))
-            self.hotel_table.setItem(rowPosition , 1, QTableWidgetItem("$" + str(hotel['price_per_night'])))
-            self.hotel_table.setItem(rowPosition , 2, QTableWidgetItem("$" + str(hotel['total_price'])))
-            self.hotel_table.setItem(rowPosition , 3, QTableWidgetItem(str(hotel['rating'])))
-            self.hotel_table.setItem(rowPosition , 4, QTableWidgetItem(str(hotel['address']['latitude']) + str(hotel['address']['longitude'])))
+            self.hotel_table.setItem(rowPosition , 1, QTableWidgetItem(str(hotel['price_per_night'])))
+            self.hotel_table.setItem(rowPosition , 2, QTableWidgetItem(str(hotel['total_price'])))
+            self.hotel_table.setItem(rowPosition , 3, QTableWidgetItem(str(round(hotel['rating'],1))))
+            self.hotel_table.setItem(rowPosition , 4, QTableWidgetItem(str(distance_str)))
+            # self.hotel_table.setItem(rowPosition , 4, QTableWidgetItem(str(hotel['address']['latitude']) + str(hotel['address']['longitude'])))
             self.hotel_table.setItem(rowPosition , 5, QTableWidgetItem(str(hotel['amenities'])))
             # self.hotel_table.setItem(rowPosition , 6, QTableWidgetItem(self.date_to_mmm(flight['flights'][0]['arrival_time'])))
             # self.hotel_table.setItem(rowPosition , 7, QTableWidgetItem(flight['flights'][0]['travel_class']))

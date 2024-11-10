@@ -12,7 +12,7 @@ def search_hotels(location, check_in_date, check_out_date, currency="USD", max_p
         "check_in_date": check_in_date,
         "check_out_date": check_out_date,
         "currency": currency,
-        "sort_by": 3 if max_price else None  # Example of using sort_by for lowest price if max_price is set
+        "sort_by": 3 if max_price else None  # Sort by lowest price if max_price is set
     }
 
     # Add optional parameters if provided
@@ -38,7 +38,8 @@ def search_hotels(location, check_in_date, check_out_date, currency="USD", max_p
                     "price_per_night": hotel.get("rate_per_night", {}).get("lowest"),
                     "total_price": hotel.get("total_rate", {}).get("lowest"),
                     "rating": hotel.get("overall_rating"),
-                    "address": hotel.get("gps_coordinates"),
+                    "latitude": hotel.get("gps_coordinates", {}).get("latitude"),  # Extract latitude
+                    "longitude": hotel.get("gps_coordinates", {}).get("longitude"),  # Extract longitude
                     "amenities": hotel.get("amenities", []),
                     "thumbnail": hotel.get("images", [{}])[0].get("thumbnail") if hotel.get("images") else None
                 }
