@@ -23,8 +23,20 @@ def get_airport_location(airport_code):
 
         # for row in textlist[1::2]:
         #     racer_dict[row[0]] = row[1]
-    airport_dict = {t[1]: {"Latitude": float(t[-2]),"Longitude": float(t[-1]), "Airport Name": t[3]} for t in textlist}
-    return (airport_dict[airport_code]["Latitude"], airport_dict[airport_code]["Longitude"])
+    airport_dict = {}
+    for t in textlist:
+        if float(t[-1]) != 0 and float(t[-2]) != 0:
+            if t[1] == "N/A":
+                airport_dict[t[0]] = {"Latitude": float(t[-2]),"Longitude": float(t[-1]), "Airport Name": t[3]}
+            else:
+                airport_dict[t[1]] = {"Latitude": float(t[-2]),"Longitude": float(t[-1]), "Airport Name": t[3]}
+    # airport_dict = {t[1]: {"Latitude": float(t[-2]),"Longitude": float(t[-1]), "Airport Name": t[3]} for t in textlist}
+    # print(sorted(airport_dict.keys()))
+    # print([t for t in airport_dict.keys() if float(airport_dict[t]["Latitude"]) == 0 and float(airport_dict[t]["Longitude"]) == 0])
+    if airport_code:
+        return (airport_dict[airport_code]["Latitude"], airport_dict[airport_code]["Longitude"])
+    else:
+        return None
     
     # json.dump(racer_dict, open('abbrevs.json', 'w'))
 

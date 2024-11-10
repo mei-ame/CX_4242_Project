@@ -668,6 +668,11 @@ class FlightSearchApp(QWidget):
             QMessageBox.warning(self, "Input Error", "Please ensure return date is not before departure date.")
             return
 
+        # Check date availbility
+        if self.flight_return_date_entry.dateTime() < datetime.today() or self.flight_departure_date_entry.dateTime() < datetime.today():
+            QMessageBox.warning(self, "Input Error", "Please ensure dates are not before current day.")
+            return
+
         # Check cost validity
         if (not self.flight_cost_min_entry.text().isnumeric() and self.flight_cost_min_entry.text())\
             or\
@@ -741,14 +746,19 @@ class FlightSearchApp(QWidget):
         airport_code = self.flight_arrival_entry.text().upper()
 
 
-        # Check for required fields
-        if not all([location, check_in_date, check_out_date, currency]):
-            QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
-            return
-
         # Check date validity
         if self.hotel_in_date_entry.dateTime() > self.hotel_out_date_entry.dateTime():
             QMessageBox.warning(self, "Input Error", "Please ensure check-out date is not before check-in date.")
+            return
+
+        # Check date availbility
+        if self.hotel_in_date_entry.dateTime() < datetime.today() or self.hotel_out_date_entry.dateTime() < datetime.today():
+            QMessageBox.warning(self, "Input Error", "Please ensure dates are not before current day.")
+            return
+
+        # Check for required fields
+        if not all([location, check_in_date, check_out_date, currency]):
+            QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
             return
 
         #Get hotel data with optional parameters
@@ -768,7 +778,7 @@ class FlightSearchApp(QWidget):
         # Display flight options in the list
 
         for hotel in hotel_data:
-            pprint(hotel)
+            # pprint(hotel)
 
             # Check if coordinates are available in the hotel data
             if "latitude" in hotel and "longitude" in hotel and hotel["latitude"] and hotel["longitude"]:
@@ -784,6 +794,13 @@ class FlightSearchApp(QWidget):
                     distance_str = "Distance unavailable."
             else:
                 distance_str = "Distance unavailable."
+
+            if not airport_code:
+                distance_str = "Arrival airport undefined."
+
+            print(airport_code)
+            print(type(airport_code))
+            print(len(airport_code))
 
             # self.flight_departure_token_list.append(flight['departure_token'])
 
@@ -954,6 +971,13 @@ class FlightSearchApp(QWidget):
                 if self.flight_return_date_entry.dateTime() < self.flight_departure_date_entry.dateTime():
                     QMessageBox.warning(self, "Input Error", "Please ensure return date is not before departure date.")
                     return
+
+                # Check date availbility
+                if self.flight_return_date_entry.dateTime() < datetime.today() or self.flight_departure_date_entry.dateTime() < datetime.today():
+                    QMessageBox.warning(self, "Input Error", "Please ensure dates are not before current day.")
+                    return
+
+
 
                 # Check cost validity
                 if (not self.flight_cost_min_entry.text().isnumeric() and self.flight_cost_min_entry.text())\
