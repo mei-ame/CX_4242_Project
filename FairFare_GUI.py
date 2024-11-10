@@ -33,6 +33,7 @@ GUI_HEIGHT = 910
 GUI_WIDTH = 1300
 GUI_PANEL_WIDTH = 300
 LEFT_PANEL_HEIGHT = 600
+LEFT_PANEL_WIDTH = 200
 
 QCOMBO_HEIGHT = 50
 
@@ -64,8 +65,8 @@ QLABEL_LEFT = "QWidget {text-align: center; qproperty-alignment: AlignTop;} \
 
 
 
-# SERP_API_KEY = "b637153e8613b18fc81533dfbf72045c9b43cbdd25323736bc3009ee6c38435a"  
-SERP_API_KEY = "8e3b97559f70aeb1a2d6f78da4ca024bab7525e316361ac1c955016a16136cf7"
+SERP_API_KEY = "b637153e8613b18fc81533dfbf72045c9b43cbdd25323736bc3009ee6c38435a"  
+# SERP_API_KEY = "8e3b97559f70aeb1a2d6f78da4ca024bab7525e316361ac1c955016a16136cf7"
 
 # Font Code
 class Font(QFont):
@@ -356,7 +357,7 @@ class FlightSearchApp(QWidget):
 
         self.flight_left_panel = QFrame(self)
         self.flight_left_panel.setLayout(flight_left_panel_layout)
-        self.flight_left_panel.setFixedWidth(200)
+        self.flight_left_panel.setFixedWidth(LEFT_PANEL_WIDTH)
         self.flight_left_panel.setStyleSheet(QLABEL_LEFT)
         self.flight_left_panel.setFixedHeight(LEFT_PANEL_HEIGHT)
 
@@ -502,7 +503,17 @@ class FlightSearchApp(QWidget):
         self.hotel_table.verticalHeader().setVisible(False)
         self.hotel_table.cellClicked.connect(self.on_hotel_row_clicked)
         self.hotel_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
         self.hotel_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # self.hotel_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+
+        # self.hotel_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        self.hotel_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        # # # self.hotel_table.horizontalHeader().setSectionResizeMode(2, QtGui.QHeaderView.ResizeToContents)
+        # self.hotel_table.horizontalHeader().setSectionResizeMode(len(hotel_table_columns)-1, QHeaderView.Stretch)
+
+        
+        
         self.hotel_table.setShowGrid(False)
 
         hotel_table_layout = QVBoxLayout()
@@ -549,20 +560,28 @@ class FlightSearchApp(QWidget):
         ##############################################################################################################
 
         
-        self.flight_menu_button = QPushButton("<<< Flights")
-        self.flight_menu_button.clicked.connect(self.on_menu_button_clicked)
-        self.flight_menu_button.setVisible(False)
-        self.hotel_menu_button = QPushButton("Hotels >>>")
-        self.hotel_menu_button.clicked.connect(self.on_menu_button_clicked)
-        self.hotel_menu_button.setVisible(False)
+        # self.flight_menu_button = QPushButton("<<< Flights")
+        # self.flight_menu_button.clicked.connect(self.on_menu_button_clicked)
+        # self.flight_menu_button.setVisible(False)
+        # self.hotel_menu_button = QPushButton("Hotels >>>")
+        # self.hotel_menu_button.clicked.connect(self.on_menu_button_clicked)
+        # self.hotel_menu_button.setVisible(False)
+
         self.next_menu_button = QPushButton("Next >>>")
         self.next_menu_button.setVisible(False)
+        self.next_menu_button.clicked.connect(self.on_menu_button_clicked)
+
+        self.prev_menu_button = QPushButton("<<< Prev")
+        self.prev_menu_button.setVisible(False)
+        self.prev_menu_button.clicked.connect(self.on_menu_button_clicked)
+
         self.menu_spacer_label = QLabel(" " * ((GUI_WIDTH // 10 * 7) // 6))
 
         menu_frame_layout = QHBoxLayout()
-        menu_frame_layout.addWidget(self.flight_menu_button)
+        # menu_frame_layout.addWidget(self.flight_menu_button)
+        menu_frame_layout.addWidget(self.prev_menu_button)
         menu_frame_layout.addWidget(self.menu_spacer_label)
-        menu_frame_layout.addWidget(self.hotel_menu_button)
+        # menu_frame_layout.addWidget(self.hotel_menu_button)
         menu_frame_layout.addWidget(self.next_menu_button)
 
         self.menu_frame = QFrame(self)
@@ -607,7 +626,7 @@ class FlightSearchApp(QWidget):
     def on_start_button_clicked(self):
         self.welcome_start_button.setVisible(False)
         self.flight_frame.setVisible(True)
-        self.hotel_menu_button.setVisible(True)
+        self.next_menu_button.setVisible(True)
 
     def on_search_clicked(self):
         # Clear previous search results
@@ -818,20 +837,61 @@ class FlightSearchApp(QWidget):
 
     def on_menu_button_clicked(self):
         push_button = self.sender()
-        if push_button == self.flight_menu_button:
-            self.hotel_frame.setVisible(False)
-            self.flight_menu_button.setVisible(False)
-            self.next_menu_button.setVisible(False)
-            self.flight_frame.setVisible(True)
-            self.hotel_menu_button.setVisible(True)
+        page_order = ["Flights", "Hotels", "Checkout"]
 
-        if push_button == self.hotel_menu_button:
-            self.flight_frame.setVisible(False)
-            self.hotel_menu_button.setVisible(False)
+        # Identify current page
+        if self.flight_frame.isVisible():
+            current_page = "Flights"
+        elif self.hotel_frame.isVisible():
+            current_page = "Hotels"
+        else:
+            current_page = "Checkout"
+
+        # Functionality for next page button
+        if push_button == self.next_menu_button:
+            new_page = page_order[page_order.index(current_page) + 1] if page_order.index(current_page) + 1 < len(page_order) else page_order[-1]
+            next_page = page_order[page_order.index(current_page) + 2] if page_order.index(current_page) + 2 < len(page_order) else ""
+            self.prev_menu_button.setText(current_page)
+            self.next_menu_button.setText(next_page)
+            print(current_page)
+            print(new_page)
+            print(next_page)
+            self.change_page(new_page)
+
+            self.prev_menu_button.setVisible(True)
+            if page_order.index(new_page) == len(page_order) - 1:
+                self.next_menu_button.setVisible(False)
+
+        # Functionality for prev page button
+        if push_button == self.prev_menu_button:
+            new_page = page_order[page_order.index(current_page) - 1] if page_order.index(current_page) - 1 >= 0 else page_order[0]
+            prev_page = page_order[page_order.index(current_page) - 2] if page_order.index(current_page) - 2 >= 0 else ""
+            self.next_menu_button.setText(current_page)
+            self.prev_menu_button.setText(prev_page)
+            print(current_page)
+            print(new_page)
+            print(prev_page)
+            self.change_page(new_page)
+
             self.next_menu_button.setVisible(True)
+            if page_order.index(new_page) == 0:
+                self.prev_menu_button.setVisible(False)
+
+    def change_page(self, new_page):
+        if new_page == "Flights":
+            self.hotel_frame.setVisible(False)
+
+            self.flight_frame.setVisible(True)
+                
+        if new_page == "Hotels":
+            self.flight_frame.setVisible(False)
+
             self.hotel_frame.setVisible(True)
-            self.flight_menu_button.setVisible(True)
-           
+
+        if new_page == "Checkout":
+            self.flight_frame.setVisible(False)
+
+            self.hotel_frame.setVisible(False)     
 
     def get_all_airports(self):
     # Get all airport abbreviations and names
