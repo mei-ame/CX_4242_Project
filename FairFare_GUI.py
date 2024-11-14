@@ -9,7 +9,7 @@ from pprint import pprint
 from PyQt5.QtWidgets import (
 	QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QCheckBox, QRadioButton, QTableWidget, QHeaderView,
 	QListWidget, QTextEdit, QMessageBox, QDateTimeEdit, QComboBox, QHBoxLayout, QAbstractItemView, QFrame, QTableWidgetItem,
-	QButtonGroup
+	QButtonGroup, QSlider
 )
 from PyQt5.QtCore import (
 	QDate, Qt
@@ -34,10 +34,10 @@ import numpy as np
 # Stylesheet information for GUI layout
 
 GUI_HEIGHT = 910
-GUI_WIDTH = 1300
+GUI_WIDTH = 1400
 GUI_PANEL_WIDTH = 300
-LEFT_PANEL_HEIGHT = 600
-LEFT_PANEL_WIDTH = 200
+LEFT_PANEL_HEIGHT = 700
+LEFT_PANEL_WIDTH = 300
 
 QCOMBO_HEIGHT = 50
 
@@ -59,7 +59,7 @@ QT_GUI = "QLabel {height: 40; font: 'Noto Serif'; font-size: 16pt; text-align: c
 				QCalendarWidget QSpinBox{background-color: #343f62;}"  
 QLABEL_PANEL = "QLabel {height: 40; font: 'Noto Serif'; font-size: 16pt; text-align: left; qproperty-alignment: AlignCenter; background: #343f62; color: #ffffff;}"
 QLABEL_ICON = "QLabel {qproperty-alignment: AlignCenter; border: 0px outset #696969; width: 10; height: 10;}"
-QLABEL_TITLE = "QLabel {width: 30; height: 40; font: 'Noto Serif'; font-size: 45pt; text-align: center; qproperty-alignment: AlignCenter; background: #343f62; color: #ffffff; font-weight: bold; font-style: italic;}"
+QLABEL_TITLE = "QLabel {width: 30; height: 30; font: 'Noto Serif'; font-size: 45pt; text-align: center; qproperty-alignment: AlignCenter; background: #343f62; color: #ffffff; font-weight: bold; font-style: italic;}"
 QLABEL_LEFT = "QWidget {text-align: center; qproperty-alignment: AlignTop;} \
 			   QLabel {text-align: center; qproperty-alignment: AlignCenter;}\
 			   QLineEdit {text-align: center; qproperty-alignment: AlignCenter;}\
@@ -450,14 +450,14 @@ class FlightSearchApp(QWidget):
 		hotel_loc_and_date_layout.addLayout(hotel_date_layout)
 
 			# Currency parameter
-		self.hotel_currency_entry = QComboBox(self)
-		self.hotel_currency_entry.addItems(self.all_currencies.keys())
-		self.hotel_currency_entry.setCurrentText('USD')
+		# self.hotel_currency_entry = QComboBox(self)
+		# self.hotel_currency_entry.addItems(self.all_currencies.keys())
+		# self.hotel_currency_entry.setCurrentText('USD')
 
-				# Parameter Layout
-		hotel_currency_entry_layout = QVBoxLayout()
-		hotel_currency_entry_layout.addWidget(QLabel("Currency:"))
-		hotel_currency_entry_layout.addWidget(self.hotel_currency_entry)
+		# 		# Parameter Layout
+		# hotel_currency_entry_layout = QVBoxLayout()
+		# hotel_currency_entry_layout.addWidget(QLabel("Currency:"))
+		# hotel_currency_entry_layout.addWidget(self.hotel_currency_entry)
 
 			# Min and Max Cost Time
 		# self.hotel_cost_min_entry = QLineEdit(self)
@@ -539,6 +539,59 @@ class FlightSearchApp(QWidget):
 		hotel_amenities_layout.addWidget(self.hotel_amenities_box_1)
 		hotel_amenities_layout.addWidget(self.hotel_amenities_box_2)
 
+			# Ranking Input
+		self.hotel_rank_rating = QComboBox(self)
+		self.hotel_rank_rating.addItems(['1','2','3','4'])
+		self.hotel_rank_rating.setCurrentText('1')
+
+		self.hotel_rank_distance = QComboBox(self)
+		self.hotel_rank_distance.addItems(['1','2','3','4'])
+		self.hotel_rank_distance.setCurrentText('1')
+
+		self.hotel_rank_wifi = QComboBox(self)
+		self.hotel_rank_wifi.addItems(['1','2','3','4'])
+		self.hotel_rank_wifi.setCurrentText('1')
+
+		self.hotel_rank_breakfast = QComboBox(self)
+		self.hotel_rank_breakfast.addItems(['1','2','3','4'])
+		self.hotel_rank_breakfast.setCurrentText('1')
+
+		hotel_rank_layout_rating = QHBoxLayout()
+		hotel_rank_layout_rating.addWidget(QLabel("Rating \t"))
+		hotel_rank_layout_rating.addWidget(self.hotel_rank_rating)
+
+		hotel_rank_layout_distance = QHBoxLayout()
+		hotel_rank_layout_distance.addWidget(QLabel("Distance\t"))
+		hotel_rank_layout_distance.addWidget(self.hotel_rank_distance)
+
+		hotel_rank_layout_wifi = QHBoxLayout()
+		hotel_rank_layout_wifi.addWidget(QLabel("Wi-fi \t"))
+		hotel_rank_layout_wifi.addWidget(self.hotel_rank_wifi)
+
+		hotel_rank_layout_breakfast = QHBoxLayout()
+		hotel_rank_layout_breakfast.addWidget(QLabel("Breakfast"))
+		hotel_rank_layout_breakfast.addWidget(self.hotel_rank_breakfast)
+
+		hotel_rank_options_layout = QVBoxLayout()
+		hotel_rank_options_layout.addLayout(hotel_rank_layout_rating)
+		# hotel_rank_layout.addWidget(QLabel(" "))
+		hotel_rank_options_layout.addLayout(hotel_rank_layout_distance)
+		# hotel_rank_layout.addWidget(QLabel(" "))
+		hotel_rank_options_layout.addLayout(hotel_rank_layout_wifi)
+		# hotel_rank_layout.addWidget(QLabel(" "))
+		hotel_rank_options_layout.addLayout(hotel_rank_layout_breakfast)
+
+		self.hotel_rank_options_frame = QFrame(self)
+		self.hotel_rank_options_frame.setLayout(hotel_rank_options_layout)
+		self.hotel_rank_options_frame.setVisible(False)
+
+		self.hotel_rank_button = QPushButton("Priorities")
+		self.hotel_rank_button.clicked.connect(lambda: self.hotel_rank_options_frame.setVisible(not self.hotel_rank_options_frame.isVisible()))
+
+		hotel_rank_layout = QHBoxLayout()
+		hotel_rank_layout.addWidget(self.hotel_rank_button)
+		hotel_rank_layout.addWidget(self.hotel_rank_options_frame)	
+
 		hotel_search_button = QPushButton("Search Hotels", self)
 		hotel_search_button.clicked.connect(self.on_hotel_search_clicked)
 
@@ -566,20 +619,22 @@ class FlightSearchApp(QWidget):
 		# hotel_left_panel_layout.addLayout(hotel_cost_layout)
 		# hotel_left_panel_layout.addWidget(QLabel(" "))
 		hotel_left_panel_layout.addLayout(hotel_rating_layout)
-		hotel_left_panel_layout.addWidget(QLabel(" "))
+		# hotel_left_panel_layout.addWidget(QLabel(" "))
 		hotel_left_panel_layout.addLayout(hotel_distance_layout)
-		hotel_left_panel_layout.addWidget(QLabel(" "))
+		# hotel_left_panel_layout.addWidget(QLabel(" "))
 		hotel_left_panel_layout.addLayout(hotel_amenities_layout)
-		hotel_left_panel_layout.addWidget(QLabel(" "))
-		hotel_left_panel_layout.addLayout(hotel_currency_entry_layout)
-		hotel_left_panel_layout.addWidget(QLabel(" "))
-		hotel_left_panel_layout.setSpacing(0)
+		# hotel_left_panel_layout.addWidget(QLabel(" "))
+		# hotel_left_panel_layout.addLayout(hotel_currency_entry_layout)
+		# hotel_left_panel_layout.addWidget(QLabel(" "))
+		hotel_left_panel_layout.addLayout(hotel_rank_layout)
+		# hotel_left_panel_layout.setSpacing(5)
 
 		self.hotel_left_panel = QFrame(self)
 		self.hotel_left_panel.setLayout(hotel_left_panel_layout)
 		self.hotel_left_panel.setFixedWidth(200)
 		self.hotel_left_panel.setStyleSheet(QLABEL_LEFT)
 		self.hotel_left_panel.setFixedHeight(LEFT_PANEL_HEIGHT)
+		self.hotel_left_panel.setFixedWidth(LEFT_PANEL_WIDTH)
 
 		hotel_main_panel_layout = QVBoxLayout()
 		hotel_main_panel_layout.addLayout(hotel_loc_and_date_layout)
@@ -672,9 +727,9 @@ class FlightSearchApp(QWidget):
 
 		logo_label = QLabel(self)
 		logo_label.setPixmap(QPixmap("logo.png")) #.scaled(10, 20, Qt.KeepAspectRatio))
-		logo_label.setFixedWidth(100)
-		logo_label.setFixedHeight(100)
 		logo_label.setScaledContents(True)
+		logo_label.setFixedWidth(50)
+		logo_label.setFixedHeight(50)
 		logo_label.setStyleSheet(QLABEL_ICON)
 
 		logo_title = QLabel("FAIRFARE")
@@ -704,7 +759,7 @@ class FlightSearchApp(QWidget):
 		layout.addWidget(self.hotel_frame)
 		layout.addWidget(self.confirm_frame)
 
-		layout.addWidget(QLabel("THIS IS A TEST"))
+		# layout.addWidget(QLabel("THIS IS A TEST"))
 		self.setLayout(layout)
 
 	def on_start_button_clicked(self):
@@ -803,7 +858,7 @@ class FlightSearchApp(QWidget):
 		location = self.hotel_location_entry.text()
 		check_in_date = self.hotel_in_date_entry.text()
 		check_out_date = self.hotel_out_date_entry.text()
-		currency = self.hotel_currency_entry.currentText()
+		currency = self.flight_currency_entry.currentText()
 		max_price = None #if self.hotel_cost_max_entry.text() == "-" else self.hotel_cost_max_entry.text()  # Optional maximum price input
 		min_price = None #if self.hotel_cost_min_entry.text() == "-" else self.hotel_cost_min_entry.text() # Optional minimum price input
 		min_rating = None #if self.hotel_rating_min_entry.text() == "-" else self.hotel_rating_min_entry.text() # Optional minimum rating input
@@ -863,15 +918,31 @@ class FlightSearchApp(QWidget):
 			# 	distance_str = "Arrival airport undefined."
 			distance_str_list.append(distance_str)
 
-		self.current_hotel_data = pd.DataFrame([ [ hotel['name'], hotel['price_per_night'], hotel['total_price'], \
-					round(hotel['rating'],1), \
-					distance_str_list[index], \
-					str(hotel['amenities'])] \
-				for index, hotel in enumerate(hotel_data) \
-				], columns = ["Name", "Price per Night", "Total Price", "Rating", "Distance from Airport", "Amenities"])
+		# self.current_hotel_data = pd.DataFrame([ [ hotel['name'], hotel['price_per_night'], hotel['total_price'], \
+		# 			round(hotel['rating'],1), \
+		# 			distance_str_list[index], \
+		# 			str(hotel['amenities'])] \
+		# 		for index, hotel in enumerate(hotel_data) \
+		# 		], columns = ["Name", "Price per Night", "Total Price", "Rating", "Distance from Airport", "Amenities"])
 
-		self.enter_hotel_table_data()
+		hotel_adjusted_data = []
+
+		for index, hotel in enumerate(hotel_data):
+			name = hotel['name']
+			ppn = hotel['price_per_night']
+			tp = hotel['total_price']
+			rating = round(hotel['rating'],1) if hotel['rating'] != None else 0
+			dist = distance_str_list[index]
+			amen = str(hotel['amenities'])
+			hotel_adjusted_data.append([name, ppn, tp, rating, dist, amen])
+
+		columnHeaders = ["Name", "Price per Night", "Total Price", "Rating", "Distance from Airport", "Amenities"]
+		self.current_hotel_data = pd.DataFrame(hotel_adjusted_data, columns = columnHeaders)
+
 		self.calculate_hotel_table_data()
+
+		# self.enter_hotel_table_data()
+		
 
 	def on_departure_flight_row_clicked(self, row, column):
 		if row > 0:
@@ -1040,6 +1111,7 @@ class FlightSearchApp(QWidget):
 			# Add flight information into the table ["Name", "Price per Night", "Total Price", "Rating", "Distance from Airport", "Amenities"]
 
 			rowPosition = self.hotel_table.rowCount()
+			# print([rowPosition, row, self.current_hotel_data.loc[row, "Total Price"]])
 			self.hotel_table.insertRow(rowPosition)
 			self.hotel_table.setItem(rowPosition , 0, QTableWidgetItem(str(self.current_hotel_data.loc[row, "Name"])))
 			self.hotel_table.setItem(rowPosition , 1, QTableWidgetItem(str(self.current_hotel_data.loc[row, "Price per Night"])))
@@ -1048,10 +1120,15 @@ class FlightSearchApp(QWidget):
 			self.hotel_table.setItem(rowPosition , 4, QTableWidgetItem(str(self.current_hotel_data.loc[row, "Distance from Airport"])))
 			self.hotel_table.setItem(rowPosition , 5, QTableWidgetItem(str(self.current_hotel_data.loc[row, "Amenities"])))
 
-	def calculate_hotel_table_data(self, rankings = [1,1,1,1]):
+		# print(self.current_hotel_data.loc[:, "totalRank":])
+
+	def calculate_hotel_table_data(self):
 		
 		# Default Priority Order
-		ratePrio, distPrio, wifiPrio, breakfastPrio = rankings
+		ratePrio = 5 - int(self.hotel_rank_rating.currentText())
+		distPrio = 5 - int(self.hotel_rank_distance.currentText())
+		wifiPrio = 5 - int(self.hotel_rank_wifi.currentText())
+		breakfastPrio = 5 - int(self.hotel_rank_breakfast.currentText())
 
 		# Rating Priority Calculation
 		if self.hotel_rating_box_1.isChecked():
@@ -1067,7 +1144,7 @@ class FlightSearchApp(QWidget):
 
 		self.current_hotel_data.loc[:, "dist"] = np.where(self.current_hotel_data.loc[:, "Distance from Airport"].str.isnumeric(), self.current_hotel_data.loc[:, "Distance from Airport"].str.split(" ", expand = True)[0], "9999999999999")
 
-		print(self.current_hotel_data)
+		# print(self.current_hotel_data)
 
 		if self.hotel_distance_box_1.isChecked():
 			self.current_hotel_data.loc[:, "distRank"] = np.where(self.current_hotel_data.loc[:, "dist"].astype(float) <= float(self.hotel_distance_box_1.text().split()[1]), 1, 0)
@@ -1078,16 +1155,29 @@ class FlightSearchApp(QWidget):
 		else:
 			self.current_hotel_data.loc[:, "distRank"] = 0
 
-		self.current_hotel_data.loc[:, "wifiRank"] = np.where(self.current_hotel_data.loc[:, "Amenities"].str.contains("Free Wi-Fi"), 1, 0)
-		self.current_hotel_data.loc[:, "breakfastRank"] = np.where(self.current_hotel_data.loc[:, "Amenities"].str.contains("Free breakfast"), 1, 0)
+		if self.hotel_amenities_box_1.isChecked():
+			self.current_hotel_data.loc[:, "wifiRank"] = np.where(self.current_hotel_data.loc[:, "Amenities"].str.contains("Free Wi-Fi"), 1, 0)
+		else:
+			self.current_hotel_data.loc[:, "wifiRank"] = 0
+
+		if self.hotel_amenities_box_2.isChecked():
+			self.current_hotel_data.loc[:, "breakfastRank"] = np.where(self.current_hotel_data.loc[:, "Amenities"].str.contains("Free breakfast"), 1, 0)
+		else:
+			self.current_hotel_data.loc[:, "breakfastRank"] = 0
 
 		self.current_hotel_data.loc[:, "totalRank"] = self.current_hotel_data.loc[:, "rateRank"] * ratePrio + \
 													self.current_hotel_data.loc[:, "distRank"]	* distPrio + \
 													self.current_hotel_data.loc[:, "wifiRank"]	* wifiPrio + \
 													self.current_hotel_data.loc[:, "breakfastRank"]	* breakfastPrio \
 
+		self.current_hotel_data.loc[:, "totalPrice"] = self.current_hotel_data.loc[:, "Total Price"].str.replace('$', '').str.replace(',','').astype(int)
 
-		print(self.current_hotel_data.loc[:, "rateRank":"breakfastRank"])
+
+		self.current_hotel_data = self.current_hotel_data.sort_values(['totalRank', 'totalPrice', 'dist'], ascending = [False, True, True]).reset_index()
+		# print(self.current_hotel_data.loc[:, "rateRank":])
+		print(self.current_hotel_data.loc[:, "totalRank":])
+
+		self.enter_hotel_table_data()
 
 
 
