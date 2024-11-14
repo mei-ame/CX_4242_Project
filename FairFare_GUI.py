@@ -228,11 +228,11 @@ class FlightSearchApp(QWidget):
 
 		# Permit Layovers
 
-		self.flight_exclude_layovers = QCheckBox("Layovers")
+		# self.flight_exclude_layovers = QCheckBox("Layovers")
 
-		flight_exclude_layout = QVBoxLayout()
-		flight_exclude_layout.addWidget(QLabel("Exclude"))
-		flight_exclude_layout.addWidget(self.flight_exclude_layovers)
+		# flight_exclude_layout = QVBoxLayout()
+		# flight_exclude_layout.addWidget(QLabel("Exclude"))
+		# flight_exclude_layout.addWidget(self.flight_exclude_layovers)
 
 		# Min and Max Flight Time
 
@@ -290,21 +290,76 @@ class FlightSearchApp(QWidget):
 		self.flight_cost_min_entry.setVisible(False)
 		self.flight_cost_max_entry.setVisible(False)
 
+			# Leg Priority
+		self.flight_leg_box_1 = QCheckBox("Nonstop only")
+		self.flight_leg_box_2 = QCheckBox("1 or less connecting flights")
+		self.flight_leg_box_3 = QCheckBox("2 or less connecting flights")
+
+		self.flight_leg_box_1.toggled.connect(self.on_leg_box_button_toggled)
+		self.flight_leg_box_2.toggled.connect(self.on_leg_box_button_toggled)
+		self.flight_leg_box_3.toggled.connect(self.on_leg_box_button_toggled)
+
+		flight_leg_layout = QVBoxLayout()
+		flight_leg_layout.addWidget(QLabel("Layovers"))
+		flight_leg_layout.addWidget(self.flight_leg_box_1)
+		flight_leg_layout.addWidget(self.flight_leg_box_2)
+		flight_leg_layout.addWidget(self.flight_leg_box_3)
+
+			# Departure Time Priority
+		self.flight_time_box_1 = QCheckBox("Early 12am-8am")
+		self.flight_time_box_2 = QCheckBox("Mid-day 8am-4pm")
+		self.flight_time_box_3 = QCheckBox("Late 4pm-12am")
+
+		self.flight_time_box_1.toggled.connect(self.on_time_box_button_toggled)
+		self.flight_time_box_2.toggled.connect(self.on_time_box_button_toggled)
+		self.flight_time_box_3.toggled.connect(self.on_time_box_button_toggled)
+
+		flight_time_layout = QVBoxLayout()
+		flight_time_layout.addWidget(QLabel("Departure Time"))
+		flight_time_layout.addWidget(self.flight_time_box_1)
+		flight_time_layout.addWidget(self.flight_time_box_2)
+		flight_time_layout.addWidget(self.flight_time_box_3)
+
+			# Ranking Input
+		self.flight_rank_leg = QComboBox(self)
+		self.flight_rank_leg.addItems(['1','2'])
+		self.flight_rank_leg.setCurrentText('1')
+
+		self.flight_rank_time = QComboBox(self)
+		self.flight_rank_time.addItems(['1','2'])
+		self.flight_rank_time.setCurrentText('1')
+
+		flight_rank_layout_leg = QHBoxLayout()
+		flight_rank_layout_leg.addWidget(QLabel("Layovers \t"))
+		flight_rank_layout_leg.addWidget(self.flight_rank_leg)
+
+		flight_rank_layout_time = QHBoxLayout()
+		flight_rank_layout_time.addWidget(QLabel("Departure\t"))
+		flight_rank_layout_time.addWidget(self.flight_rank_time)
+
+		flight_rank_options_layout = QVBoxLayout()
+		flight_rank_options_layout.addLayout(flight_rank_layout_leg)
+		# hotel_rank_layout.addWidget(QLabel(" "))
+		flight_rank_options_layout.addLayout(flight_rank_layout_time)
+
+		self.flight_rank_options_frame = QFrame(self)
+		self.flight_rank_options_frame.setLayout(flight_rank_options_layout)
+		self.flight_rank_options_frame.setVisible(False)
+
+		self.flight_rank_button = QPushButton("Priorities")
+		self.flight_rank_button.clicked.connect(lambda: self.flight_rank_options_frame.setVisible(not self.flight_rank_options_frame.isVisible()))
+
+		flight_rank_layout = QHBoxLayout()
+		flight_rank_layout.addWidget(self.flight_rank_button)
+		flight_rank_layout.addWidget(self.flight_rank_options_frame)	
+
+
 		########## Output for search results
 		
 		# Search button
 
 		flight_search_button = QPushButton("Search Flights", self)
 		flight_search_button.clicked.connect(self.on_search_clicked)
-		
-		# List widget for displaying departure flights
-		
-		# self.flight_departure_token_list = []
-		
-		# Text edit for displaying flight details
-
-		# self.flight_details = QTextEdit(self)
-		# self.flight_details.setReadOnly(True)
 
 
 		# Table widget for departure flight information
@@ -365,14 +420,21 @@ class FlightSearchApp(QWidget):
 
 		flight_left_panel_layout = QVBoxLayout()
 		flight_left_panel_layout.addLayout(flight_trip_layout)
-		flight_left_panel_layout.addWidget(QLabel(" "))
-		# flight_left_panel_layout.addLayout(flight_time_layout)
-		# flight_left_panel_layout.addWidget(QLabel(" "))
-		# flight_left_panel_layout.addLayout(flight_cost_layout)
-		# flight_left_panel_layout.addWidget(QLabel(" "))
+		flight_left_panel_layout.addWidget(QLabel(" "))	
+		flight_left_panel_layout.addLayout(flight_leg_layout)
+		flight_left_panel_layout.addWidget(QLabel(" "))	
+		flight_left_panel_layout.addLayout(flight_time_layout)
+		flight_left_panel_layout.addWidget(QLabel(" "))	
 		flight_left_panel_layout.addLayout(flight_currency_layout)
-		flight_left_panel_layout.addWidget(QLabel(" "))
-		flight_left_panel_layout.addLayout(flight_exclude_layout)
+		flight_left_panel_layout.addWidget(QLabel(" "))	
+		flight_left_panel_layout.addLayout(flight_rank_layout)
+
+
+		# flight_left_panel_layout.addWidget(QLabel(" "))
+		# flight_left_panel_layout.addLayout(flight_exclude_layout)
+
+
+
 		flight_left_panel_layout.setSpacing(0)
 
 		self.flight_left_panel = QFrame(self)
@@ -774,6 +836,12 @@ class FlightSearchApp(QWidget):
 		self.departure_token = ""
 		# self.flight_details.clear()
 
+		for i in range(1, self.departure_flight_table.rowCount()):
+			self.departure_flight_table.removeRow(1)
+
+		for i in range(1, self.return_flight_table.rowCount()):
+			self.return_flight_table.removeRow(1)
+
 		if self.flight_trip_type == "Round Trip":
 			self.return_flight_table.setVisible(True)
 			self.return_flight_table_label.setVisible(True)
@@ -836,17 +904,20 @@ class FlightSearchApp(QWidget):
 
 		# Convert flight_data to Dataframe ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class"]
 		# print(flight_data)
-		self.current_dep_flight_data = pd.DataFrame([ [ flight['flights'][0]['airline'], flight['price'], flight['type'], \
+		self.current_dep_flight_data = pd.DataFrame([ [ flight['flights'][0]['airline'], "$" + str(flight['price']), flight['type'], \
 					self.time_to_12(flight['flights'][0]['departure_time']), \
 					self.date_to_mmm(flight['flights'][0]['departure_time']), \
 					self.time_to_12(flight['flights'][-1]['arrival_time']), \
 					self.date_to_mmm(flight['flights'][0]['arrival_time']), \
 					flight['flights'][0]['travel_class'], \
-					flight['departure_token']] \
+					flight['departure_token'], \
+					len(flight['flights'])] \
 				for flight in flight_data \
-				], columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class", "Departure Token"])
+				], columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class", "Departure Token", "numLegs"])
 
-		self.enter_departure_flight_table_data()
+		# print(flight_data)
+		self.calculate_departure_flight_table_data()
+		# self.enter_departure_flight_table_data()
 		
 
 	def on_hotel_search_clicked(self):
@@ -1024,18 +1095,19 @@ class FlightSearchApp(QWidget):
 
 				self.current_ret_flight_data = flight_data
 
-				self.current_ret_flight_data = pd.DataFrame([ [ flight['flights'][0]['airline'], flight['price'], flight['type'], \
+				self.current_ret_flight_data = pd.DataFrame([ [ flight['flights'][0]['airline'], "$" + str(flight['price']), flight['type'], \
 					self.time_to_12(flight['flights'][0]['departure_time']), \
 					self.date_to_mmm(flight['flights'][0]['departure_time']), \
 					self.time_to_12(flight['flights'][-1]['arrival_time']), \
 					self.date_to_mmm(flight['flights'][0]['arrival_time']), \
 					flight['flights'][0]['travel_class'], \
-					flight['departure_token']] \
+					flight['departure_token'], \
+					len(flight['flights'])] \
 				for flight in flight_data \
-				], columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class", "Departure Token"])
+				], columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class", "Departure Token", "numLegs"])
 
-				print("falsdjf;lads")
-				self.enter_return_flight_table_data()
+				# print("falsdjf;lads")
+				self.calculate_return_flight_table_data()
 
 				
 
@@ -1122,6 +1194,75 @@ class FlightSearchApp(QWidget):
 
 		# print(self.current_hotel_data.loc[:, "totalRank":])
 
+	def calculate_departure_flight_table_data(self):
+		# Default Priority Order
+		legPrio = 3 - int(self.flight_rank_leg.currentText())
+		timePrio = 3 - int(self.flight_rank_time.currentText())
+
+		if self.flight_leg_box_1.isChecked():
+			self.current_dep_flight_data.loc[:, "legRank"] = np.where(self.current_dep_flight_data.loc[:, "numLegs"] == 1, 1, 0)
+		elif self.flight_leg_box_2.isChecked():
+			self.current_dep_flight_data.loc[:, "legRank"] = np.where(self.current_dep_flight_data.loc[:, "numLegs"] <= 2, 1, 0)
+		elif self.flight_leg_box_3.isChecked():
+			self.current_dep_flight_data.loc[:, "legRank"] = np.where(self.current_dep_flight_data.loc[:, "numLegs"] <= 3, 1, 0)
+		else:
+			self.current_dep_flight_data.loc[:, "legRank"] = 0
+
+		if self.flight_time_box_1.isChecked():
+			self.current_dep_flight_data.loc[:, "timeRank"] = np.where(self.current_dep_flight_data.loc[:, "Departure"].str.contains("AM") & self.current_dep_flight_data.loc[:, "Departure"].str.split(":", expand = True)[0].isin(["12", "1", "2", "3", "4", "5", "6", "7"]), 1, 0)
+		elif self.flight_time_box_3.isChecked():
+			self.current_dep_flight_data.loc[:, "timeRank"] = np.where(self.current_dep_flight_data.loc[:, "Departure"].str.contains("PM") & self.current_dep_flight_data.loc[:, "Departure"].str.split(":", expand = True)[0].isin(["4", "5", "6", "7", "8", "9", "10", "11"]), 1, 0)
+		elif self.flight_time_box_2.isChecked():
+			self.current_dep_flight_data.loc[:, "timeRank"] = np.where(self.current_dep_flight_data.loc[:, "Departure"].str.split(":", expand = True)[0].isin(["8", "9", "10", "11", "12", "1", "2", "3"]), 1, 0)
+		else:
+			self.current_dep_flight_data.loc[:, "timeRank"] = 0
+
+		self.current_dep_flight_data.loc[:, "totalRank"] = self.current_dep_flight_data.loc[:, "legRank"] * legPrio + \
+													self.current_dep_flight_data.loc[:, "timeRank"]	* timePrio
+
+		self.current_dep_flight_data.loc[:, "totalPrice"] = self.current_dep_flight_data.loc[:, "Price"].str.replace('$', '').str.replace(',','').astype(int)
+
+		self.current_dep_flight_data = self.current_dep_flight_data.sort_values(['totalRank', 'totalPrice'], ascending = [False, True]).reset_index()
+
+		print(self.current_dep_flight_data.loc[:, "legRank":])
+
+		self.enter_departure_flight_table_data()
+
+	def calculate_return_flight_table_data(self):
+
+		# Default Priority Order
+		legPrio = 3 - int(self.flight_rank_leg.currentText())
+		timePrio = 3 - int(self.flight_rank_time.currentText())
+
+		if self.flight_leg_box_1.isChecked():
+			self.current_ret_flight_data.loc[:, "legRank"] = np.where(self.current_ret_flight_data.loc[:, "numLegs"] == 1, 1, 0)
+		elif self.flight_leg_box_2.isChecked():
+			self.current_ret_flight_data.loc[:, "legRank"] = np.where(self.current_ret_flight_data.loc[:, "numLegs"] <= 2, 1, 0)
+		elif self.flight_leg_box_3.isChecked():
+			self.current_ret_flight_data.loc[:, "legRank"] = np.where(self.current_ret_flight_data.loc[:, "numLegs"] <= 3, 1, 0)
+		else:
+			self.current_ret_flight_data.loc[:, "legRank"] = 0
+
+		if self.flight_time_box_1.isChecked():
+			self.current_ret_flight_data.loc[:, "timeRank"] = np.where(self.current_ret_flight_data.loc[:, "Departure"].str.contains("AM") & self.current_ret_flight_data.loc[:, "Departure"].str.split(":", expand = True)[0].isin(["12", "1", "2", "3", "4", "5", "6", "7"]), 1, 0)
+		elif self.flight_time_box_3.isChecked():
+			self.current_ret_flight_data.loc[:, "timeRank"] = np.where(self.current_ret_flight_data.loc[:, "Departure"].str.contains("PM") & self.current_ret_flight_data.loc[:, "Departure"].str.split(":", expand = True)[0].isin(["4", "5", "6", "7", "8", "9", "10", "11"]), 1, 0)
+		elif self.flight_time_box_2.isChecked():
+			self.current_ret_flight_data.loc[:, "timeRank"] = np.where(self.current_ret_flight_data.loc[:, "Departure"].str.split(":", expand = True)[0].isin(["8", "9", "10", "11", "12", "1", "2", "3"]), 1, 0)
+		else:
+			self.current_ret_flight_data.loc[:, "timeRank"] = 0
+
+		self.current_ret_flight_data.loc[:, "totalRank"] = self.current_ret_flight_data.loc[:, "legRank"] * legPrio + \
+													self.current_ret_flight_data.loc[:, "timeRank"]	* timePrio
+
+		self.current_ret_flight_data.loc[:, "totalPrice"] = self.current_ret_flight_data.loc[:, "Price"].str.replace('$', '').str.replace(',','').astype(int)
+
+		self.current_ret_flight_data = self.current_ret_flight_data.sort_values(['totalRank', 'totalPrice'], ascending = [False, True]).reset_index()
+
+		print(self.current_ret_flight_data.loc[:, "legRank":])
+
+		self.enter_return_flight_table_data()
+
 	def calculate_hotel_table_data(self):
 		
 		# Default Priority Order
@@ -1140,11 +1281,8 @@ class FlightSearchApp(QWidget):
 		else:
 			self.current_hotel_data.loc[:, "rateRank"] = 0
 
-		# self.current_hotel_data[self.current_hotel_data.loc[:, "Distance from Airport"].str.contains("Distance")] = "99999999 miles"
 
 		self.current_hotel_data.loc[:, "dist"] = np.where(self.current_hotel_data.loc[:, "Distance from Airport"].str.isnumeric(), self.current_hotel_data.loc[:, "Distance from Airport"].str.split(" ", expand = True)[0], "9999999999999")
-
-		# print(self.current_hotel_data)
 
 		if self.hotel_distance_box_1.isChecked():
 			self.current_hotel_data.loc[:, "distRank"] = np.where(self.current_hotel_data.loc[:, "dist"].astype(float) <= float(self.hotel_distance_box_1.text().split()[1]), 1, 0)
@@ -1168,7 +1306,7 @@ class FlightSearchApp(QWidget):
 		self.current_hotel_data.loc[:, "totalRank"] = self.current_hotel_data.loc[:, "rateRank"] * ratePrio + \
 													self.current_hotel_data.loc[:, "distRank"]	* distPrio + \
 													self.current_hotel_data.loc[:, "wifiRank"]	* wifiPrio + \
-													self.current_hotel_data.loc[:, "breakfastRank"]	* breakfastPrio \
+													self.current_hotel_data.loc[:, "breakfastRank"]	* breakfastPrio
 
 		self.current_hotel_data.loc[:, "totalPrice"] = self.current_hotel_data.loc[:, "Total Price"].str.replace('$', '').str.replace(',','').astype(int)
 
@@ -1206,6 +1344,34 @@ class FlightSearchApp(QWidget):
 			self.return_flight_table_label.setVisible(False)
 		self.flight_trip_type = radio_button.text()
 
+	def on_leg_box_button_toggled(self):
+		box_button = self.sender()
+		if self.flight_leg_box_1.isChecked() and box_button == self.flight_leg_box_1:
+			self.flight_leg_box_2.setChecked(False)
+			self.flight_leg_box_3.setChecked(False)
+
+		if self.flight_leg_box_2.isChecked() and box_button == self.flight_leg_box_2:
+			self.flight_leg_box_1.setChecked(False)
+			self.flight_leg_box_3.setChecked(False)
+
+		if self.flight_leg_box_3.isChecked() and box_button == self.flight_leg_box_3:
+			self.flight_leg_box_1.setChecked(False)
+			self.flight_leg_box_2.setChecked(False)
+
+	def on_time_box_button_toggled(self):
+		box_button = self.sender()
+		if self.flight_time_box_1.isChecked() and box_button == self.flight_time_box_1:
+			self.flight_time_box_2.setChecked(False)
+			self.flight_time_box_3.setChecked(False)
+
+		if self.flight_time_box_2.isChecked() and box_button == self.flight_time_box_2:
+			self.flight_time_box_1.setChecked(False)
+			self.flight_time_box_3.setChecked(False)
+
+		if self.flight_time_box_3.isChecked() and box_button == self.flight_time_box_3:
+			self.flight_time_box_1.setChecked(False)
+			self.flight_time_box_2.setChecked(False)
+
 	def on_rating_box_button_toggled(self):
 		box_button = self.sender()
 		if self.hotel_rating_box_1.isChecked() and box_button == self.hotel_rating_box_1:
@@ -1237,6 +1403,9 @@ class FlightSearchApp(QWidget):
 	def on_menu_button_clicked(self):
 		push_button = self.sender()
 		page_order = ["Flights", "Hotels", "Confirmation"]
+
+		self.flight_rank_options_frame.setVisible(False)
+		self.hotel_rank_options_frame.setVisible(False)
 
 		# Identify current page
 		if self.flight_frame.isVisible():
