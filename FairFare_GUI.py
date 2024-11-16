@@ -34,7 +34,7 @@ import numpy as np
 # Stylesheet information for GUI layout
 
 GUI_HEIGHT = 910
-GUI_WIDTH = 1400
+GUI_WIDTH = 1600
 GUI_PANEL_WIDTH = 300
 LEFT_PANEL_HEIGHT = 700
 LEFT_PANEL_WIDTH = 300
@@ -56,7 +56,8 @@ QT_GUI = "QLabel {height: 40; font: 'Noto Serif'; font-size: 16pt; text-align: c
 				QCalendarWidget QAbstractItemView:enabled{background-color: #343f62; color: gray;}\
 				QCalendarWidget QAbstractItemView:disabled{background-color: #343f62 ;color: black;}\
 				QCalendarWidget QMenu{background-color: #343f62;}\
-				QCalendarWidget QSpinBox{background-color: #343f62;}"  
+				QCalendarWidget QSpinBox{background-color: #343f62;}\
+				QToolTip{color: black ; font: 16pt}"  
 QLABEL_PANEL = "QLabel {height: 40; font: 'Noto Serif'; font-size: 16pt; text-align: left; qproperty-alignment: AlignCenter; background: #343f62; color: #ffffff;}"
 QLABEL_ICON = "QLabel {qproperty-alignment: AlignCenter; border: 0px outset #696969; width: 10; height: 10;}"
 QLABEL_TITLE = "QLabel {width: 30; height: 30; font: 'Noto Serif'; font-size: 45pt; text-align: center; qproperty-alignment: AlignCenter; background: #343f62; color: #ffffff; font-weight: bold; font-style: italic;}"
@@ -69,8 +70,9 @@ QLABEL_LEFT = "QWidget {text-align: center; qproperty-alignment: AlignTop;} \
 
 
 
-SERP_API_KEY = "b637153e8613b18fc81533dfbf72045c9b43cbdd25323736bc3009ee6c38435a"  
+# SERP_API_KEY = "b637153e8613b18fc81533dfbf72045c9b43cbdd25323736bc3009ee6c38435a"  
 # SERP_API_KEY = "8e3b97559f70aeb1a2d6f78da4ca024bab7525e316361ac1c955016a16136cf7"
+SERP_API_KEY = "a9deee9173656ca6302d2fed79e2b999494e4e0bcd7d177aad40ea88be63aa17"
 
 # Font Code
 class Font(QFont):
@@ -101,6 +103,7 @@ class FlightSearchApp(QWidget):
 	def initUI(self):
 		self.setWindowTitle("FairFare")
 		self.setGeometry(300, 100, GUI_WIDTH, GUI_HEIGHT)
+		self.showMaximized()
 
 		app.setStyleSheet(QT_GUI)
 
@@ -117,6 +120,8 @@ class FlightSearchApp(QWidget):
 
 		self.welcome_start_button = QPushButton("Get Started")
 		self.welcome_start_button.clicked.connect(self.on_start_button_clicked)
+		self.welcome_start_button.setFixedWidth(400)
+		self.welcome_start_button.setFixedHeight(100)
 
 		##############################################################################################################
 		#   END WELCOME PAGE
@@ -136,7 +141,7 @@ class FlightSearchApp(QWidget):
 
 		self.current_dep_flight = None
 		self.current_ret_flight = None
-		self.curent_hotel = None
+		self.current_hotel = None
 
 			# Departure Airport Code parameter
 		self.flight_departure_entry = QLineEdit(self)
@@ -322,10 +327,12 @@ class FlightSearchApp(QWidget):
 
 			# Ranking Input
 		self.flight_rank_leg = QComboBox(self)
+		self.flight_rank_leg.setToolTip("1 - Most Important, 2 - Least Important")
 		self.flight_rank_leg.addItems(['1','2'])
 		self.flight_rank_leg.setCurrentText('1')
 
 		self.flight_rank_time = QComboBox(self)
+		self.flight_rank_time.setToolTip("1 - Most Important, 2 - Least Important")
 		self.flight_rank_time.addItems(['1','2'])
 		self.flight_rank_time.setCurrentText('1')
 
@@ -347,6 +354,7 @@ class FlightSearchApp(QWidget):
 		self.flight_rank_options_frame.setVisible(False)
 
 		self.flight_rank_button = QPushButton("Priorities")
+		self.flight_rank_button.setToolTip("Rank your filter priorities")
 		self.flight_rank_button.clicked.connect(lambda: self.flight_rank_options_frame.setVisible(not self.flight_rank_options_frame.isVisible()))
 
 		flight_rank_layout = QHBoxLayout()
@@ -366,6 +374,8 @@ class FlightSearchApp(QWidget):
 
 		departure_flight_table_columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class"]
 		self.departure_flight_table_label = QLabel("Departure Flights")
+		self.departure_flight_table_button = QPushButton("Select Flight")
+		self.departure_flight_table_button.clicked.connect(self.on_departure_flight_select_clicked)
 		self.departure_flight_table = QTableWidget(self)
 		self.departure_flight_table.setColumnCount(len(departure_flight_table_columns))
 		self.departure_flight_table.setRowCount(1)
@@ -378,12 +388,37 @@ class FlightSearchApp(QWidget):
 		self.departure_flight_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
 		self.departure_flight_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 		self.departure_flight_table.setShowGrid(False)
+		self.departure_flight_table.setWordWrap(True)
+
+
+		flight_details = \
+			f'\
+Airline:\t\t \n\
+Price:\t\t \n\
+Type:\t\t \n\
+Departure:\t \n\
+Arrival:\t\t \n\
+Class:\t\t \n\
+Layover Flights:\t \
+'
+		self.dep_flight_table_details_label = QLabel("Departure Flight Details")
+		self.dep_flight_table_details = QLabel(flight_details)
+		self.dep_flight_table_details.setStyleSheet("QLabel {text-align: left; qproperty-alignment: AlignLeft;}")
+		self.dep_flight_table_details.setFixedWidth(350)
+
+		self.ret_flight_table_details_label = QLabel("Return Flight Details")
+		self.ret_flight_table_details = QLabel(flight_details)
+		self.ret_flight_table_details.setStyleSheet("QLabel {text-align: left; qproperty-alignment: AlignLeft;}")
+		self.ret_flight_table_details.setFixedWidth(350)
+
 		self.departure_token = ""
 
 		# Table widget for return flight information
 
 		return_flight_table_columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class"]
 		self.return_flight_table_label = QLabel("Return Flights")
+		self.return_flight_table_button = QPushButton("Select Flight")
+		self.return_flight_table_button.clicked.connect(self.on_return_flight_select_clicked)
 		self.return_flight_table = QTableWidget(self)
 		self.return_flight_table.setColumnCount(len(return_flight_table_columns))
 		self.return_flight_table.setRowCount(1)
@@ -396,6 +431,7 @@ class FlightSearchApp(QWidget):
 		self.return_flight_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
 		self.return_flight_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 		self.return_flight_table.setShowGrid(False)
+		self.return_flight_table.setWordWrap(True)
 		
 
 		########## Insert all data in layout
@@ -443,15 +479,43 @@ class FlightSearchApp(QWidget):
 		self.flight_left_panel.setStyleSheet(QLABEL_LEFT)
 		self.flight_left_panel.setFixedHeight(LEFT_PANEL_HEIGHT)
 
+		flight_main_panel_dep_left_top_layout = QHBoxLayout()
+		flight_main_panel_dep_left_top_layout.addWidget(self.departure_flight_table_label)
+		flight_main_panel_dep_left_top_layout.addWidget(self.departure_flight_table_button)
+
+		flight_main_panel_dep_left_layout = QVBoxLayout()
+		flight_main_panel_dep_left_layout.addLayout(flight_main_panel_dep_left_top_layout)
+		flight_main_panel_dep_left_layout.addWidget(self.departure_flight_table)
+
+		flight_main_panel_dep_right_layout = QVBoxLayout()
+		flight_main_panel_dep_right_layout.addWidget(self.dep_flight_table_details_label)
+		flight_main_panel_dep_right_layout.addWidget(self.dep_flight_table_details)
+
+		flight_main_panel_dep_layout = QHBoxLayout()
+		flight_main_panel_dep_layout.addLayout(flight_main_panel_dep_left_layout)
+		flight_main_panel_dep_layout.addLayout(flight_main_panel_dep_right_layout)
+
+		flight_main_panel_ret_left_top_layout = QHBoxLayout()
+		flight_main_panel_ret_left_top_layout.addWidget(self.return_flight_table_label)
+		flight_main_panel_ret_left_top_layout.addWidget(self.return_flight_table_button)
+
+		flight_main_panel_ret_left_layout = QVBoxLayout()
+		flight_main_panel_ret_left_layout.addLayout(flight_main_panel_ret_left_top_layout)
+		flight_main_panel_ret_left_layout.addWidget(self.return_flight_table)
+
+		flight_main_panel_ret_right_layout = QVBoxLayout()
+		flight_main_panel_ret_right_layout.addWidget(self.ret_flight_table_details_label)
+		flight_main_panel_ret_right_layout.addWidget(self.ret_flight_table_details)
+
+		flight_main_panel_ret_layout = QHBoxLayout()
+		flight_main_panel_ret_layout.addLayout(flight_main_panel_ret_left_layout)
+		flight_main_panel_ret_layout.addLayout(flight_main_panel_ret_right_layout)
 
 		flight_main_panel_layout = QVBoxLayout()
 		flight_main_panel_layout.addLayout(flight_code_and_date_layout)
 		flight_main_panel_layout.addWidget(flight_search_button)
-		# flight_main_panel_layout.addLayout(flight_info_layout)
-		flight_main_panel_layout.addWidget(self.departure_flight_table_label)
-		flight_main_panel_layout.addWidget(self.departure_flight_table)
-		flight_main_panel_layout.addWidget(self.return_flight_table_label)
-		flight_main_panel_layout.addWidget(self.return_flight_table)
+		flight_main_panel_layout.addLayout(flight_main_panel_dep_layout)
+		flight_main_panel_layout.addLayout(flight_main_panel_ret_layout)
 
 		self.flight_main_panel = QFrame(self)
 		self.flight_main_panel.setLayout(flight_main_panel_layout)
@@ -511,55 +575,6 @@ class FlightSearchApp(QWidget):
 		hotel_loc_and_date_layout.addLayout(hotel_location_layout)
 		hotel_loc_and_date_layout.addLayout(hotel_date_layout)
 
-			# Currency parameter
-		# self.hotel_currency_entry = QComboBox(self)
-		# self.hotel_currency_entry.addItems(self.all_currencies.keys())
-		# self.hotel_currency_entry.setCurrentText('USD')
-
-		# 		# Parameter Layout
-		# hotel_currency_entry_layout = QVBoxLayout()
-		# hotel_currency_entry_layout.addWidget(QLabel("Currency:"))
-		# hotel_currency_entry_layout.addWidget(self.hotel_currency_entry)
-
-			# Min and Max Cost Time
-		# self.hotel_cost_min_entry = QLineEdit(self)
-		# self.hotel_cost_min_entry.setPlaceholderText("-")
-
-		# hotel_cost_min_layout = QVBoxLayout()
-		# hotel_cost_min_layout.addWidget(QLabel("Min"))
-		# hotel_cost_min_layout.addWidget(self.hotel_cost_min_entry)
-
-		# self.hotel_cost_max_entry = QLineEdit(self)
-		# self.hotel_cost_max_entry.setPlaceholderText("-")
-
-		# hotel_cost_max_layout = QVBoxLayout()
-		# hotel_cost_max_layout.addWidget(QLabel("Max"))
-		# hotel_cost_max_layout.addWidget(self.hotel_cost_max_entry)
-
-		# hotel_cost_range_layout = QHBoxLayout()
-		# hotel_cost_range_layout.addLayout(hotel_cost_min_layout)
-		# hotel_cost_range_layout.addWidget(QLabel(" - "))
-		# hotel_cost_range_layout.addLayout(hotel_cost_max_layout)
-
-		# hotel_cost_layout = QVBoxLayout()
-		# hotel_cost_layout.addWidget(QLabel("Cost ($)"))
-		# hotel_cost_layout.addLayout(hotel_cost_range_layout)
-
-			# Min and Max Ratings
-		# self.hotel_rating_min_entry = QLineEdit(self)
-		# self.hotel_rating_min_entry.setPlaceholderText("-")
-
-		# hotel_rating_min_layout = QVBoxLayout()
-		# hotel_rating_min_layout.addWidget(QLabel("Min"))
-		# hotel_rating_min_layout.addWidget(self.hotel_rating_min_entry)
-
-		# self.hotel_rating_max_entry = QLineEdit(self)
-		# self.hotel_rating_max_entry.setPlaceholderText("-")
-
-		# hotel_rating_max_layout = QVBoxLayout()
-		# hotel_rating_max_layout.addWidget(QLabel("Max"))
-		# hotel_rating_max_layout.addWidget(self.hotel_rating_max_entry)
-
 			# Ratings Priority
 		self.hotel_rating_box_1 = QCheckBox("5 stars")
 		self.hotel_rating_box_2 = QCheckBox("4 or more stars")
@@ -603,21 +618,25 @@ class FlightSearchApp(QWidget):
 
 			# Ranking Input
 		self.hotel_rank_rating = QComboBox(self)
+		self.hotel_rank_rating.setToolTip("1 - Most Important, ..., 4 - Least Important")
 		self.hotel_rank_rating.addItems(['1','2','3','4'])
 		self.hotel_rank_rating.setCurrentText('1')
 
 		self.hotel_rank_distance = QComboBox(self)
+		self.hotel_rank_distance.setToolTip("1 - Most Important, ..., 4 - Least Important")
 		self.hotel_rank_distance.addItems(['1','2','3','4'])
 		self.hotel_rank_distance.setCurrentText('1')
 
 		self.hotel_rank_wifi = QComboBox(self)
+		self.hotel_rank_wifi.setToolTip("1 - Most Important, ..., 4 - Least Important")
 		self.hotel_rank_wifi.addItems(['1','2','3','4'])
 		self.hotel_rank_wifi.setCurrentText('1')
 
 		self.hotel_rank_breakfast = QComboBox(self)
+		self.hotel_rank_breakfast.setToolTip("1 - Most Important, ..., 4 - Least Important")
 		self.hotel_rank_breakfast.addItems(['1','2','3','4'])
 		self.hotel_rank_breakfast.setCurrentText('1')
-
+		
 		hotel_rank_layout_rating = QHBoxLayout()
 		hotel_rank_layout_rating.addWidget(QLabel("Rating \t"))
 		hotel_rank_layout_rating.addWidget(self.hotel_rank_rating)
@@ -636,11 +655,8 @@ class FlightSearchApp(QWidget):
 
 		hotel_rank_options_layout = QVBoxLayout()
 		hotel_rank_options_layout.addLayout(hotel_rank_layout_rating)
-		# hotel_rank_layout.addWidget(QLabel(" "))
 		hotel_rank_options_layout.addLayout(hotel_rank_layout_distance)
-		# hotel_rank_layout.addWidget(QLabel(" "))
 		hotel_rank_options_layout.addLayout(hotel_rank_layout_wifi)
-		# hotel_rank_layout.addWidget(QLabel(" "))
 		hotel_rank_options_layout.addLayout(hotel_rank_layout_breakfast)
 
 		self.hotel_rank_options_frame = QFrame(self)
@@ -648,6 +664,7 @@ class FlightSearchApp(QWidget):
 		self.hotel_rank_options_frame.setVisible(False)
 
 		self.hotel_rank_button = QPushButton("Priorities")
+		self.hotel_rank_button.setToolTip("Rank your filter priorities")
 		self.hotel_rank_button.clicked.connect(lambda: self.hotel_rank_options_frame.setVisible(not self.hotel_rank_options_frame.isVisible()))
 
 		hotel_rank_layout = QHBoxLayout()
@@ -656,6 +673,10 @@ class FlightSearchApp(QWidget):
 
 		hotel_search_button = QPushButton("Search Hotels", self)
 		hotel_search_button.clicked.connect(self.on_hotel_search_clicked)
+
+		hotel_select_button = QPushButton("Select Hotel", self)
+		hotel_select_button.clicked.connect(self.on_hotel_select_clicked)
+		hotel_select_button.setFixedWidth(200)
 
 		hotel_table_columns = ["Name", "Price per Night", "Total Price", "Rating", "Distance from Airport", "Amenities"]
 		self.hotel_table_label = QLabel("Hotels")
@@ -672,24 +693,36 @@ class FlightSearchApp(QWidget):
 		self.hotel_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 		self.hotel_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
 		self.hotel_table.setShowGrid(False)
+		self.hotel_table.setWordWrap(True)
 
 		hotel_table_layout = QVBoxLayout()
 		hotel_table_layout.addWidget(self.hotel_table)
 		hotel_table_layout.addWidget(self.hotel_table_label)
 
+		hotel_details = \
+		f'\
+Name:\t\t\t \n\
+Nightly Price:\t\t \n\
+Total Price:\t\t \n\
+Rating:\t\t\t \n\
+Distance from Airport:\t\n\
+Amenities:\t\t \
+'
+
+		self.hotel_table_details_label = QLabel("Hotel Details")
+		self.hotel_table_details = QLabel(hotel_details)
+		self.hotel_table_details.setStyleSheet("QLabel {text-align: left; qproperty-alignment: AlignLeft;}")
+		self.hotel_table_details.setFixedWidth(500)
+
+		hotel_table_details_layout = QVBoxLayout()
+		hotel_table_details_layout.addWidget(self.hotel_table_details_label)
+		hotel_table_details_layout.addWidget(self.hotel_table_details)
+
 		hotel_left_panel_layout = QVBoxLayout()
-		# hotel_left_panel_layout.addLayout(hotel_cost_layout)
-		# hotel_left_panel_layout.addWidget(QLabel(" "))
 		hotel_left_panel_layout.addLayout(hotel_rating_layout)
-		# hotel_left_panel_layout.addWidget(QLabel(" "))
 		hotel_left_panel_layout.addLayout(hotel_distance_layout)
-		# hotel_left_panel_layout.addWidget(QLabel(" "))
 		hotel_left_panel_layout.addLayout(hotel_amenities_layout)
-		# hotel_left_panel_layout.addWidget(QLabel(" "))
-		# hotel_left_panel_layout.addLayout(hotel_currency_entry_layout)
-		# hotel_left_panel_layout.addWidget(QLabel(" "))
 		hotel_left_panel_layout.addLayout(hotel_rank_layout)
-		# hotel_left_panel_layout.setSpacing(5)
 
 		self.hotel_left_panel = QFrame(self)
 		self.hotel_left_panel.setLayout(hotel_left_panel_layout)
@@ -698,10 +731,21 @@ class FlightSearchApp(QWidget):
 		self.hotel_left_panel.setFixedHeight(LEFT_PANEL_HEIGHT)
 		self.hotel_left_panel.setFixedWidth(LEFT_PANEL_WIDTH)
 
+		hotel_main_panel_buttons_layout = QHBoxLayout()
+		hotel_main_panel_buttons_layout.addWidget(hotel_search_button)
+		hotel_main_panel_buttons_layout.addWidget(hotel_select_button)
+
+		hotel_main_panel_info_layout = QVBoxLayout()
+		hotel_main_panel_info_layout.addLayout(hotel_main_panel_buttons_layout)
+		hotel_main_panel_info_layout.addLayout(hotel_table_layout)
+
+		hotel_main_panel_details_layout = QHBoxLayout()
+		hotel_main_panel_details_layout.addLayout(hotel_main_panel_info_layout)
+		hotel_main_panel_details_layout.addLayout(hotel_table_details_layout)
+
 		hotel_main_panel_layout = QVBoxLayout()
 		hotel_main_panel_layout.addLayout(hotel_loc_and_date_layout)
-		hotel_main_panel_layout.addWidget(hotel_search_button)
-		hotel_main_panel_layout.addLayout(hotel_table_layout)
+		hotel_main_panel_layout.addLayout(hotel_main_panel_details_layout)
 
 		self.hotel_main_panel = QFrame(self)
 		self.hotel_main_panel.setLayout(hotel_main_panel_layout)
@@ -722,15 +766,50 @@ class FlightSearchApp(QWidget):
 		#   BEGIN CONFIRMATION PAGE
 		##############################################################################################################
 
+		flight_details = \
+			f'\
+Airline:\t\t \n\
+Price:\t\t \n\
+Type:\t\t \n\
+Departure:\t \n\
+Arrival:\t\t \n\
+Class:\t\t \n\
+Layover Flights:\t \
+'
+	
+		hotel_details = \
+			f'\
+Name:\t\t\t \n\
+Nightly Price:\t\t \n\
+Total Price:\t\t \n\
+Rating:\t\t\t \n\
+Distance from Airport:\t\n\
+Amenities:\t\t \
+'
+
+		self.confirm_dep_flight_details = QLabel(flight_details)
+		self.confirm_dep_flight_details.setStyleSheet("QLabel {text-align: left; qproperty-alignment: AlignLeft;}")
+
 
 		confirm_dep_flight_panel_layout = QHBoxLayout()
 		confirm_dep_flight_panel_layout.addWidget(QLabel("DEPARTURE FLIGHT"))
+		confirm_dep_flight_panel_layout.addWidget(self.confirm_dep_flight_details)
+
+		self.confirm_ret_flight_details = QLabel(flight_details)
+		self.confirm_ret_flight_details.setStyleSheet("QLabel {text-align: left; qproperty-alignment: AlignLeft;}")
+
 
 		confirm_ret_flight_panel_layout = QHBoxLayout()
 		confirm_ret_flight_panel_layout.addWidget(QLabel("RETURN FLIGHT"))
+		confirm_ret_flight_panel_layout.addWidget(self.confirm_ret_flight_details)
+
+		self.confirm_hotel_details = QLabel(hotel_details)
+		self.confirm_hotel_details.setStyleSheet("QLabel {text-align: left; qproperty-alignment: AlignLeft;}")
+
 
 		confirm_hotel_panel_layout = QHBoxLayout()
 		confirm_hotel_panel_layout.addWidget(QLabel("HOTEL"))
+		confirm_hotel_panel_layout.addWidget(self.confirm_hotel_details)
 
 		self.confirm_dep_flight_panel = QFrame(self)
 		self.confirm_dep_flight_panel.setLayout(confirm_dep_flight_panel_layout)
@@ -745,6 +824,7 @@ class FlightSearchApp(QWidget):
 		confirm_frame_layout.addWidget(self.confirm_dep_flight_panel)
 		confirm_frame_layout.addWidget(self.confirm_ret_flight_panel)
 		confirm_frame_layout.addWidget(self.confirm_hotel_panel)
+		confirm_frame_layout.addWidget(QLabel("\nThank you for using FairFare!\n"))
 
 		self.confirm_frame = QFrame(self)
 		self.confirm_frame.setLayout(confirm_frame_layout)
@@ -809,6 +889,7 @@ class FlightSearchApp(QWidget):
 
 		welcome_layout = QVBoxLayout()
 		welcome_layout.addWidget(self.welcome_start_button)
+		welcome_layout.setAlignment(Qt.AlignCenter)
 
 		self.welcome_panel = QFrame(self)
 		self.welcome_panel.setLayout(welcome_layout)
@@ -829,6 +910,37 @@ class FlightSearchApp(QWidget):
 		self.flight_frame.setVisible(True)
 		self.next_menu_button.setVisible(True)
 
+	def clear_departure_flight_table(self):
+		flight_details = \
+			f'\
+Airline:\t\t \n\
+Price:\t\t \n\
+Type:\t\t \n\
+Departure:\t \n\
+Arrival:\t\t \n\
+Class:\t\t \n\
+Layover Flights:\t \
+'
+		self.confirm_dep_flight_details.setText(flight_details)
+		for i in range(1, self.departure_flight_table.rowCount()):
+			self.departure_flight_table.removeRow(1)
+
+
+	def clear_return_flight_table(self):
+		flight_details = \
+			f'\
+Airline:\t\t \n\
+Price:\t\t \n\
+Type:\t\t \n\
+Departure:\t \n\
+Arrival:\t\t \n\
+Class:\t\t \n\
+Layover Flights:\t \
+'
+		self.confirm_ret_flight_details.setText(flight_details)
+		for i in range(1, self.return_flight_table.rowCount()):
+			self.return_flight_table.removeRow(1)
+
 	def on_search_clicked(self):
 		# Clear previous search results
 		# self.departure_flight_list.clear()
@@ -836,18 +948,16 @@ class FlightSearchApp(QWidget):
 		self.departure_token = ""
 		# self.flight_details.clear()
 
-		for i in range(1, self.departure_flight_table.rowCount()):
-			self.departure_flight_table.removeRow(1)
+		self.clear_departure_flight_table()
 
-		for i in range(1, self.return_flight_table.rowCount()):
-			self.return_flight_table.removeRow(1)
+		self.clear_return_flight_table()
 
-		if self.flight_trip_type == "Round Trip":
-			self.return_flight_table.setVisible(True)
-			self.return_flight_table_label.setVisible(True)
-		else:
-			self.return_flight_table.setVisible(False)
-			self.return_flight_table_label.setVisible(False)
+		# if self.flight_trip_type == "Round Trip":
+		# 	self.return_flight_table.setVisible(True)
+		# 	self.return_flight_table_label.setVisible(True)
+		# else:
+		# 	self.return_flight_table.setVisible(False)
+		# 	self.return_flight_table_label.setVisible(False)
 
 		# Retrieve input values
 		departure_id = self.flight_departure_entry.text().upper()
@@ -859,6 +969,12 @@ class FlightSearchApp(QWidget):
 		min_time = None if self.flight_time_min_entry.text() == "" else self.flight_time_min_entry.text() # Optional minimum time input
 		max_time = None if self.flight_time_max_entry.text() == "" else self.flight_time_max_entry.text() # Optional maximum time input
 			
+
+		# Check for required fields
+		if not all([departure_id, arrival_id, departure_date, return_date, currency]):
+			QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
+			return
+
 		# Check date validity
 		if self.flight_return_date_entry.dateTime() < self.flight_departure_date_entry.dateTime():
 			QMessageBox.warning(self, "Input Error", "Please ensure return date is not before departure date.")
@@ -883,10 +999,7 @@ class FlightSearchApp(QWidget):
 			QMessageBox.warning(self, "Input Error", "Please ensure flight times are numeric values.")
 			return
 
-		# Check for required fields
-		if not all([departure_id, arrival_id, departure_date, return_date, currency]):
-			QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
-			return
+		
 
 		# Get flight data with optional parameters
 		flight_data = search_flights(
@@ -938,6 +1051,11 @@ class FlightSearchApp(QWidget):
 		airport_code = self.flight_arrival_entry.text().upper()
 
 
+		# Check for required fields
+		if not all([location, check_in_date, check_out_date, currency]):
+			QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
+			return
+
 		# Check date validity
 		if self.hotel_in_date_entry.dateTime() > self.hotel_out_date_entry.dateTime():
 			QMessageBox.warning(self, "Input Error", "Please ensure check-out date is not before check-in date.")
@@ -948,10 +1066,7 @@ class FlightSearchApp(QWidget):
 			QMessageBox.warning(self, "Input Error", "Please ensure dates are not before current day.")
 			return
 
-		# Check for required fields
-		if not all([location, check_in_date, check_out_date, currency]):
-			QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
-			return
+		
 
 		#Get hotel data with optional parameters
 		hotel_data = search_hotels(
@@ -1012,29 +1127,49 @@ class FlightSearchApp(QWidget):
 
 		self.calculate_hotel_table_data()
 
-		# self.enter_hotel_table_data()
+	def on_hotel_select_clicked(self):
+		if type(self.current_hotel) != type(None):
+			hotel_amenities = self.current_hotel["Amenities"][1:-1].replace(", ", "\n\t\t\t")
+			hotel_details = \
+				f'\
+Name:\t\t\t {self.current_hotel["Name"]}\n\
+Nightly Price:\t\t {self.current_hotel["Price per Night"]}\n\
+Total Price:\t\t {self.current_hotel["Total Price"]}\n\
+Rating:\t\t\t {self.current_hotel["Rating"]}\n\
+Distance from Airport:\t{self.current_hotel["Distance from Airport"]}\n\
+Amenities:\t\t{hotel_amenities}\
+'
+			self.confirm_hotel_details.setText(hotel_details)
 		
 
 	def on_departure_flight_row_clicked(self, row, column):
 		if row > 0:
 			self.departure_flight_table.selectRow(row)
-			print(row)
-			print(self.current_dep_flight_data)
 			self.current_dep_flight = self.current_dep_flight_data.loc[row - 1,:]
-			# print("CURRENT DEPARTURE FLIGHT:")
-			# pprint(self.current_dep_flight)
 
-			# self.departure_token = self.flight_departure_token_list[row - 1]
+			flight_details = \
+			f'\
+Airline:\t\t {self.current_dep_flight["Airline"]}\n\
+Price:\t\t {self.current_dep_flight["Price"]}\n\
+Type:\t\t {self.current_dep_flight["Type"]}\n\
+Departure:\t {self.current_dep_flight["Dpt Date"][:-4] + self.current_dep_flight["Departure"]}\n\
+Arrival:\t\t {self.current_dep_flight["Arr Date"][:-4] + self.current_dep_flight["Arrival"]}\n\
+Class:\t\t {self.current_dep_flight["Travel Class"]}\n\
+Layover Flights:\t {str(self.current_dep_flight["numLegs"] - 1)}\
+			'
+			self.dep_flight_table_details.setText(flight_details)
 			self.departure_token = self.current_dep_flight_data.loc[row - 1, 'Departure Token']
-			print(self.departure_token)
+
+
+	def on_departure_flight_select_clicked(self):
+		if type(self.current_dep_flight) != type(None):
 
 			###################################################################################################################
 			# RETURN FLIGHT INFORMATION
 			###################################################################################################################
 			if self.flight_trip_type == "Round Trip":
 				# Clear previous search results
-				for i in range(1, self.return_flight_table.rowCount()):
-					self.return_flight_table.removeRow(1)
+				self.clear_return_flight_table()
 
 				# Retrieve input values
 				departure_id = self.flight_departure_entry.text().upper()
@@ -1047,6 +1182,11 @@ class FlightSearchApp(QWidget):
 				max_time = None if self.flight_time_max_entry.text() == "" else self.flight_time_max_entry.text() # Optional maximum time input
 				departure_token = self.departure_token
 				self.return_flight_table.setShowGrid(False)
+
+				# Check for required fields
+				if not all([departure_id, arrival_id, departure_date, return_date, currency]):
+					QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
+					return
 					
 				# Check date validity
 				if self.flight_return_date_entry.dateTime() < self.flight_departure_date_entry.dateTime():
@@ -1072,10 +1212,7 @@ class FlightSearchApp(QWidget):
 					QMessageBox.warning(self, "Input Error", "Please ensure flight times are numeric values.")
 					return
 
-				# Check for required fields
-				if not all([departure_id, arrival_id, departure_date, return_date, currency]):
-					QMessageBox.warning(self, "Input Error", "Please fill in all required fields.")
-					return
+				
 
 				# Get flight data with optional parameters
 				flight_data = search_flights(
@@ -1109,10 +1246,18 @@ class FlightSearchApp(QWidget):
 				# print("falsdjf;lads")
 				self.calculate_return_flight_table_data()
 
-				
 
-			else:
-				print("Not a round trip.")
+			flight_details = \
+			f'\
+Airline:\t\t {self.current_dep_flight["Airline"]}\n\
+Price:\t\t {self.current_dep_flight["Price"]}\n\
+Type:\t\t {self.current_dep_flight["Type"]}\n\
+Departure:\t {self.current_dep_flight["Dpt Date"][:-4] + self.current_dep_flight["Departure"]}\n\
+Arrival:\t\t {self.current_dep_flight["Arr Date"][:-4] + self.current_dep_flight["Arrival"]}\n\
+Class:\t\t {self.current_dep_flight["Travel Class"]}\n\
+Layover Flights:\t {str(self.current_dep_flight["numLegs"] - 1)}\
+'
+			self.confirm_dep_flight_details.setText(flight_details)
 
 		###################################################################################################################
 		###################################################################################################################
@@ -1121,15 +1266,52 @@ class FlightSearchApp(QWidget):
 		if row > 0:
 			self.return_flight_table.selectRow(row)
 			self.current_ret_flight = self.current_ret_flight_data.loc[row - 1, :]
-			print("CURRENT RETURN FLIGHT:")
-			pprint(self.current_ret_flight)
+			# print("CURRENT RETURN FLIGHT:")
+			# pprint(self.current_ret_flight)
+
+			flight_details = \
+			f'\
+Airline:\t\t {self.current_ret_flight["Airline"]}\n\
+Price:\t\t {self.current_ret_flight["Price"]}\n\
+Type:\t\t {self.current_ret_flight["Type"]}\n\
+Departure:\t {self.current_ret_flight["Dpt Date"][:-4] + self.current_ret_flight["Departure"]}\n\
+Arrival:\t\t {self.current_ret_flight["Arr Date"][:-4] + self.current_ret_flight["Arrival"]}\n\
+Class:\t\t {self.current_ret_flight["Travel Class"]}\n\
+Layover Flights:\t {str(self.current_ret_flight["numLegs"] - 1)}\
+			'
+			self.ret_flight_table_details.setText(flight_details)
+
+	def on_return_flight_select_clicked(self):
+		if type(self.current_ret_flight) != type(None):
+			flight_details = \
+				f'\
+Airline:\t\t {self.current_ret_flight["Airline"]}\n\
+Price:\t\t {self.current_ret_flight["Price"]}\n\
+Type:\t\t {self.current_ret_flight["Type"]}\n\
+Departure:\t {self.current_ret_flight["Dpt Date"][:-4] + self.current_dep_flight["Departure"]}\n\
+Arrival:\t\t {self.current_ret_flight["Arr Date"][:-4] + self.current_dep_flight["Arrival"]}\n\
+Class:\t\t {self.current_ret_flight["Travel Class"]}\n\
+Layover Flights:\t {str(self.current_ret_flight["numLegs"] - 1)}\
+'
+			self.confirm_ret_flight_details.setText(flight_details)
 
 	def on_hotel_row_clicked(self, row, column):
 		if row > 0:
 			self.hotel_table.selectRow(row)
 			self.current_hotel = self.current_hotel_data.loc[row - 1, :]
-			print("CURRENT HOTEL:")
-			pprint(self.current_hotel)
+
+			hotel_amenities = self.current_hotel["Amenities"][1:-1].replace(", ", "\n\t\t\t")
+			hotel_details = \
+			f'\
+Name:\t\t\t {self.current_hotel["Name"]}\n\
+Nightly Price:\t\t {self.current_hotel["Price per Night"]}\n\
+Total Price:\t\t {self.current_hotel["Total Price"]}\n\
+Rating:\t\t\t {self.current_hotel["Rating"]}\n\
+Distance from Airport:\t{self.current_hotel["Distance from Airport"]}\n\
+Amenities:\t\t{hotel_amenities}\
+'
+
+			self.hotel_table_details.setText(hotel_details)
 
 	def on_departure_date_calendar_date_changed(self):
 		self.flight_return_date_entry.setDateTime(self.flight_departure_date_entry.dateTime())
@@ -1137,8 +1319,7 @@ class FlightSearchApp(QWidget):
 
 	def enter_departure_flight_table_data(self):
 
-		for i in range(1, self.departure_flight_table.rowCount()):
-			self.departure_flight_table.removeRow(1)
+		self.clear_departure_flight_table()
 
 		for row in range(len(self.current_dep_flight_data)):
 
@@ -1156,8 +1337,7 @@ class FlightSearchApp(QWidget):
 
 	def enter_return_flight_table_data(self):
 
-		for i in range(1, self.return_flight_table.rowCount()):
-			self.return_flight_table.removeRow(1)
+		self.clear_return_flight_table()
 
 		for row in range(len(self.current_ret_flight_data)):
 
@@ -1224,7 +1404,7 @@ class FlightSearchApp(QWidget):
 
 		self.current_dep_flight_data = self.current_dep_flight_data.sort_values(['totalRank', 'totalPrice'], ascending = [False, True]).reset_index()
 
-		print(self.current_dep_flight_data.loc[:, "legRank":])
+		# print(self.current_dep_flight_data.loc[:, "legRank":])
 
 		self.enter_departure_flight_table_data()
 
@@ -1259,7 +1439,7 @@ class FlightSearchApp(QWidget):
 
 		self.current_ret_flight_data = self.current_ret_flight_data.sort_values(['totalRank', 'totalPrice'], ascending = [False, True]).reset_index()
 
-		print(self.current_ret_flight_data.loc[:, "legRank":])
+		# print(self.current_ret_flight_data.loc[:, "legRank":])
 
 		self.enter_return_flight_table_data()
 
@@ -1313,7 +1493,7 @@ class FlightSearchApp(QWidget):
 
 		self.current_hotel_data = self.current_hotel_data.sort_values(['totalRank', 'totalPrice', 'dist'], ascending = [False, True, True]).reset_index()
 		# print(self.current_hotel_data.loc[:, "rateRank":])
-		print(self.current_hotel_data.loc[:, "totalRank":])
+		# print(self.current_hotel_data.loc[:, "totalRank":])
 
 		self.enter_hotel_table_data()
 
@@ -1322,11 +1502,9 @@ class FlightSearchApp(QWidget):
 	def on_radio_button_toggled(self):
 		radio_button = self.sender()
 
-		for i in range(1, self.departure_flight_table.rowCount()):
-			self.departure_flight_table.removeRow(1)
+		self.clear_departure_flight_table()
+		self.clear_return_flight_table()
 
-		for i in range(1, self.return_flight_table.rowCount()):
-			self.return_flight_table.removeRow(1)
 
 		if radio_button == self.flight_trip_round:
 			self.flight_return_date_entry.setEnabled(True)
@@ -1335,6 +1513,12 @@ class FlightSearchApp(QWidget):
 
 			self.return_flight_table.setVisible(True)
 			self.return_flight_table_label.setVisible(True)
+
+			self.ret_flight_table_details.setVisible(True)
+			self.ret_flight_table_details_label.setVisible(True)
+			self.return_flight_table_button.setVisible(True)
+
+			self.confirm_ret_flight_panel.setVisible(True)
 		else:
 			self.flight_return_date_entry.setEnabled(False)
 			self.flight_return_date_entry.setVisible(False)
@@ -1342,6 +1526,13 @@ class FlightSearchApp(QWidget):
 
 			self.return_flight_table.setVisible(False)
 			self.return_flight_table_label.setVisible(False)
+
+			self.ret_flight_table_details.setVisible(False)
+			self.ret_flight_table_details_label.setVisible(False)
+			self.return_flight_table_button.setVisible(False)
+
+			self.confirm_ret_flight_panel.setVisible(False)
+
 		self.flight_trip_type = radio_button.text()
 
 	def on_leg_box_button_toggled(self):
@@ -1421,9 +1612,9 @@ class FlightSearchApp(QWidget):
 			next_page = page_order[page_order.index(current_page) + 2] if page_order.index(current_page) + 2 < len(page_order) else ""
 			self.prev_menu_button.setText(current_page)
 			self.next_menu_button.setText(next_page)
-			print(current_page)
-			print(new_page)
-			print(next_page)
+			# print(current_page)
+			# print(new_page)
+			# print(next_page)
 			self.change_page(new_page)
 
 			self.prev_menu_button.setVisible(True)
@@ -1436,9 +1627,9 @@ class FlightSearchApp(QWidget):
 			prev_page = page_order[page_order.index(current_page) - 2] if page_order.index(current_page) - 2 >= 0 else ""
 			self.next_menu_button.setText(current_page)
 			self.prev_menu_button.setText(prev_page)
-			print(current_page)
-			print(new_page)
-			print(prev_page)
+			# print(current_page)
+			# print(new_page)
+			# print(prev_page)
 			self.change_page(new_page)
 
 			self.next_menu_button.setVisible(True)
@@ -1457,9 +1648,9 @@ class FlightSearchApp(QWidget):
 			self.hotel_frame.setVisible(True)
 
 		if new_page == "Confirmation":
-			self.confirm_frame.setVisible(True)
 			self.flight_frame.setVisible(False)
-			self.hotel_frame.setVisible(False)     
+			self.hotel_frame.setVisible(False) 
+			self.confirm_frame.setVisible(True)
 
 	def get_all_airports(self):
 	# Get all airport abbreviations and names
@@ -1485,32 +1676,6 @@ class FlightSearchApp(QWidget):
 	def date_to_mmm(self, date):
 		months = {"1":"Jan", "2":"Feb", "3":"Mar", "4":"Apr", "5":"May", "6":"Jun", "7":"Jul", "8":"Aug", "9":"Sep", "10":"Oct", "11":"Nov", "12":"Dec"}
 		return months[date.split(" ")[0].split("-")[1]] + " " + date.split(" ")[0].split("-")[2] + ", " + date.split(" ")[0].split("-")[0]
-
-	# def display_flight_details(self, item):
-	# # Get index of the selected item
-	#     # index = self.departure_flight_list.row(item)
-
-	#     if index != 0:
-
-	#         # Get the corresponding flight details
-	#         flight = self.current_flight_data[index]
-	#         flight_text = f"Price: ${flight['price']}\nType: {flight['type']}\nDuration: {flight['total_duration']} min\n\n"
-
-	#         for leg in flight['flights']:
-	#             # Assuming 'departure_airport' and 'arrival_airport' are strings
-	#             flight_text += (
-	#                 f"Flight {leg['flight_number']} ({leg['airline']})\n"
-	#                 f"  Departure: {leg['departure_airport']} at {leg['departure_time']}\n"
-	#                 f"  Arrival: {leg['arrival_airport']} at {leg['arrival_time']}\n"
-	#                 f"  Duration: {leg['duration']} min\n\n"
-	#             )
-
-	#         self.flight_details.setText(flight_text)
-	#         # return flight_text
-	#         # self.right_panel.setVisible(True)
-	#         # self.right_panel.setText(flight_text)
-
-			# self.rightpane.addItem
 
 
 if __name__ == "__main__":

@@ -1,8 +1,9 @@
 from serpapi import GoogleSearch
 
 # Your SerpAPI API key
-API_KEY = "b637153e8613b18fc81533dfbf72045c9b43cbdd25323736bc3009ee6c38435a"
+# API_KEY = "b637153e8613b18fc81533dfbf72045c9b43cbdd25323736bc3009ee6c38435a"
 # API_KEY = "8e3b97559f70aeb1a2d6f78da4ca024bab7525e316361ac1c955016a16136cf7"
+API_KEY = "a9deee9173656ca6302d2fed79e2b999494e4e0bcd7d177aad40ea88be63aa17"
 
 # Function to search hotels using inputs
 def search_hotels(location, check_in_date, check_out_date, currency="USD", max_price=None, min_price=None, min_rating=None, amenities=None):

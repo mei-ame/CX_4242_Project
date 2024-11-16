@@ -54,4 +54,4 @@ def calculate_distance(airport_code, hotel_lat, hotel_lon):
     distance_km = haversine((airport_lat, airport_lon), hotel_location, unit=Unit.MILES)
     return distance_km
 
-print(calculate_distance("HOU", -8.808104, 115.22827729999999))
+# print(calculate_distance("HOU", -8.808104, 115.22827729999999))
