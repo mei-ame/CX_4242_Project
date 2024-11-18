@@ -1675,7 +1675,7 @@ Amenities:\t\t{hotel_amenities}\
 
 	def date_to_mmm(self, date):
 		months = {"1":"Jan", "2":"Feb", "3":"Mar", "4":"Apr", "5":"May", "6":"Jun", "7":"Jul", "8":"Aug", "9":"Sep", "10":"Oct", "11":"Nov", "12":"Dec"}
-		return months[date.split(" ")[0].split("-")[1]] + " " + date.split(" ")[0].split("-")[2] + ", " + date.split(" ")[0].split("-")[0]
+		return months[str(int(date.split(" ")[0].split("-")[1]))] + " " + date.split(" ")[0].split("-")[2] + ", " + date.split(" ")[0].split("-")[0]
 
 
 if __name__ == "__main__":
