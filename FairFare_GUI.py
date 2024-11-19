@@ -39,9 +39,11 @@ GUI_PANEL_WIDTH = 300
 LEFT_PANEL_HEIGHT = 700
 LEFT_PANEL_WIDTH = 300
 
-QCOMBO_WIDTH = 50
+QCOMBO_WIDTH = 70
 
 BOTTOM_MARGIN_HEIGHT = 100
+
+HOTEL_DETAIL_WIDTH = 400
 
 # QLABEL_BASE = "QLabel {{background: #{}; color: #00aeef; border: 3px inset #5252cc; font: 'Noto Serif';}}"
 # # QLABEL_DEFAULT = "QLabel {background: #002050; color: #00aeef; border: 3px outset #5252cc; font: 'Noto Serif'; font-size: 50pt;}"
@@ -333,7 +335,7 @@ class FlightSearchApp(QWidget):
 		self.flight_rank_leg.setToolTip("1 - Most Important, 2 - Least Important")
 		self.flight_rank_leg.addItems(['1','2'])
 		self.flight_rank_leg.setCurrentText('1')
-		self.flight_rank.leg.setFixedWidth(QCOMBO_WIDTH)
+		self.flight_rank_leg.setFixedWidth(QCOMBO_WIDTH)
 
 		self.flight_rank_time = QComboBox(self)
 		self.flight_rank_time.setToolTip("1 - Most Important, 2 - Least Important")
@@ -377,7 +379,7 @@ class FlightSearchApp(QWidget):
 
 		# Table widget for departure flight information
 
-		departure_flight_table_columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class"]
+		departure_flight_table_columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Class"]
 		self.departure_flight_table_label = QLabel("Departure Flights")
 		self.departure_flight_table_button = QPushButton("Select Flight")
 		self.departure_flight_table_button.clicked.connect(self.on_departure_flight_select_clicked)
@@ -420,7 +422,7 @@ Layover Flights:\t \
 
 		# Table widget for return flight information
 
-		return_flight_table_columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class"]
+		return_flight_table_columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Class"]
 		self.return_flight_table_label = QLabel("Return Flights")
 		self.return_flight_table_button = QPushButton("Select Flight")
 		self.return_flight_table_button.clicked.connect(self.on_return_flight_select_clicked)
@@ -680,7 +682,7 @@ Layover Flights:\t \
 		hotel_rank_layout.addWidget(self.hotel_rank_button)
 		hotel_rank_layout.addWidget(self.hotel_rank_options_frame)	
 
-		hotel_table_columns = ["Name", "Price per Night", "Total Price", "Rating", "Distance from Airport", "Amenities"]
+		hotel_table_columns = ["Name", "Price/Night", "Total Price", "Rating", "Distance from Airport", "Amenities"]
 		self.hotel_table_label = QLabel("Hotels")
 		self.hotel_table = QTableWidget(self)
 		self.hotel_table.setColumnCount(len(hotel_table_columns))
@@ -728,7 +730,7 @@ Amenities:\t\t \
 		self.hotel_table_details_label = QLabel("Hotel Details")
 		self.hotel_table_details = QLabel(hotel_details)
 		self.hotel_table_details.setStyleSheet("QLabel {text-align: left; qproperty-alignment: AlignLeft;}")
-		self.hotel_table_details.setFixedWidth(500)
+		self.hotel_table_details.setFixedWidth(HOTEL_DETAIL_WIDTH)
 
 		hotel_table_details_layout = QVBoxLayout()
 		hotel_table_details_layout.addWidget(self.hotel_table_details_label)
@@ -742,7 +744,6 @@ Amenities:\t\t \
 
 		self.hotel_left_panel = QFrame(self)
 		self.hotel_left_panel.setLayout(hotel_left_panel_layout)
-		self.hotel_left_panel.setFixedWidth(200)
 		self.hotel_left_panel.setStyleSheet(QLABEL_LEFT)
 		self.hotel_left_panel.setFixedHeight(LEFT_PANEL_HEIGHT)
 		self.hotel_left_panel.setFixedWidth(LEFT_PANEL_WIDTH)
@@ -1043,7 +1044,7 @@ Layover Flights:\t \
 			QMessageBox.information(self, "No Results", str(flight_data) if flight_data else "No flights found.")
 			return
 
-		# Convert flight_data to Dataframe ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class"]
+		# Convert flight_data to Dataframe ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Class"]
 		# print(flight_data)
 		self.current_dep_flight_data = pd.DataFrame([ [ flight['flights'][0]['airline'], "$" + str(flight['price']), flight['type'], \
 					self.time_to_12(flight['flights'][0]['departure_time']), \
@@ -1054,7 +1055,7 @@ Layover Flights:\t \
 					flight['departure_token'], \
 					len(flight['flights'])] \
 				for flight in flight_data \
-				], columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class", "Departure Token", "numLegs"])
+				], columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Class", "Departure Token", "numLegs"])
 
 		# print(flight_data)
 		self.calculate_departure_flight_table_data()
@@ -1137,7 +1138,7 @@ Layover Flights:\t \
 		# 			distance_str_list[index], \
 		# 			str(hotel['amenities'])] \
 		# 		for index, hotel in enumerate(hotel_data) \
-		# 		], columns = ["Name", "Price per Night", "Total Price", "Rating", "Distance from Airport", "Amenities"])
+		# 		], columns = ["Name", "Price/Night", "Total Price", "Rating", "Distance from Airport", "Amenities"])
 
 		hotel_adjusted_data = []
 
@@ -1150,7 +1151,7 @@ Layover Flights:\t \
 			amen = str(hotel['amenities'])
 			hotel_adjusted_data.append([name, ppn, tp, rating, dist, amen])
 
-		columnHeaders = ["Name", "Price per Night", "Total Price", "Rating", "Distance from Airport", "Amenities"]
+		columnHeaders = ["Name", "Price/Night", "Total Price", "Rating", "Distance from Airport", "Amenities"]
 		self.current_hotel_data = pd.DataFrame(hotel_adjusted_data, columns = columnHeaders)
 
 		self.calculate_hotel_table_data()
@@ -1161,7 +1162,7 @@ Layover Flights:\t \
 			hotel_details = \
 				f'\
 Name:\t\t\t {self.current_hotel["Name"]}\n\
-Nightly Price:\t\t {self.current_hotel["Price per Night"]}\n\
+Nightly Price:\t\t {self.current_hotel["Price/Night"]}\n\
 Total Price:\t\t {self.current_hotel["Total Price"]}\n\
 Rating:\t\t\t {self.current_hotel["Rating"]}\n\
 Distance from Airport:\t{self.current_hotel["Distance from Airport"]}\n\
@@ -1182,7 +1183,7 @@ Price:\t\t {self.current_dep_flight["Price"]}\n\
 Type:\t\t {self.current_dep_flight["Type"]}\n\
 Departure:\t {self.current_dep_flight["Dpt Date"][:-4] + self.current_dep_flight["Departure"]}\n\
 Arrival:\t\t {self.current_dep_flight["Arr Date"][:-4] + self.current_dep_flight["Arrival"]}\n\
-Class:\t\t {self.current_dep_flight["Travel Class"]}\n\
+Class:\t\t {self.current_dep_flight["Class"]}\n\
 Layover Flights:\t {str(self.current_dep_flight["numLegs"] - 1)}\
 			'
 			self.dep_flight_table_details.setText(flight_details)
@@ -1269,7 +1270,7 @@ Layover Flights:\t {str(self.current_dep_flight["numLegs"] - 1)}\
 					flight['departure_token'], \
 					len(flight['flights'])] \
 				for flight in flight_data \
-				], columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class", "Departure Token", "numLegs"])
+				], columns = ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Class", "Departure Token", "numLegs"])
 
 				# print("falsdjf;lads")
 				self.calculate_return_flight_table_data()
@@ -1282,7 +1283,7 @@ Price:\t\t {self.current_dep_flight["Price"]}\n\
 Type:\t\t {self.current_dep_flight["Type"]}\n\
 Departure:\t {self.current_dep_flight["Dpt Date"][:-4] + self.current_dep_flight["Departure"]}\n\
 Arrival:\t\t {self.current_dep_flight["Arr Date"][:-4] + self.current_dep_flight["Arrival"]}\n\
-Class:\t\t {self.current_dep_flight["Travel Class"]}\n\
+Class:\t\t {self.current_dep_flight["Class"]}\n\
 Layover Flights:\t {str(self.current_dep_flight["numLegs"] - 1)}\
 '
 			self.confirm_dep_flight_details.setText(flight_details)
@@ -1304,7 +1305,7 @@ Price:\t\t {self.current_ret_flight["Price"]}\n\
 Type:\t\t {self.current_ret_flight["Type"]}\n\
 Departure:\t {self.current_ret_flight["Dpt Date"][:-4] + self.current_ret_flight["Departure"]}\n\
 Arrival:\t\t {self.current_ret_flight["Arr Date"][:-4] + self.current_ret_flight["Arrival"]}\n\
-Class:\t\t {self.current_ret_flight["Travel Class"]}\n\
+Class:\t\t {self.current_ret_flight["Class"]}\n\
 Layover Flights:\t {str(self.current_ret_flight["numLegs"] - 1)}\
 			'
 			self.ret_flight_table_details.setText(flight_details)
@@ -1318,7 +1319,7 @@ Price:\t\t {self.current_ret_flight["Price"]}\n\
 Type:\t\t {self.current_ret_flight["Type"]}\n\
 Departure:\t {self.current_ret_flight["Dpt Date"][:-4] + self.current_dep_flight["Departure"]}\n\
 Arrival:\t\t {self.current_ret_flight["Arr Date"][:-4] + self.current_dep_flight["Arrival"]}\n\
-Class:\t\t {self.current_ret_flight["Travel Class"]}\n\
+Class:\t\t {self.current_ret_flight["Class"]}\n\
 Layover Flights:\t {str(self.current_ret_flight["numLegs"] - 1)}\
 '
 			self.confirm_ret_flight_details.setText(flight_details)
@@ -1332,7 +1333,7 @@ Layover Flights:\t {str(self.current_ret_flight["numLegs"] - 1)}\
 			hotel_details = \
 			f'\
 Name:\t\t\t {self.current_hotel["Name"]}\n\
-Nightly Price:\t\t {self.current_hotel["Price per Night"]}\n\
+Nightly Price:\t\t {self.current_hotel["Price/Night"]}\n\
 Total Price:\t\t {self.current_hotel["Total Price"]}\n\
 Rating:\t\t\t {self.current_hotel["Rating"]}\n\
 Distance from Airport:\t{self.current_hotel["Distance from Airport"]}\n\
@@ -1351,7 +1352,7 @@ Amenities:\t\t{hotel_amenities}\
 
 		for row in range(len(self.current_dep_flight_data)):
 
-			# Add flight information into the table ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class"]
+			# Add flight information into the table ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Class"]
 			rowPosition = self.departure_flight_table.rowCount()
 			self.departure_flight_table.insertRow(rowPosition)
 			self.departure_flight_table.setItem(rowPosition , 0, QTableWidgetItem(str(self.current_dep_flight_data.loc[row, "Airline"])))
@@ -1361,7 +1362,7 @@ Amenities:\t\t{hotel_amenities}\
 			self.departure_flight_table.setItem(rowPosition , 4, QTableWidgetItem(str(self.current_dep_flight_data.loc[row, "Dpt Date"])))
 			self.departure_flight_table.setItem(rowPosition , 5, QTableWidgetItem(str(self.current_dep_flight_data.loc[row, "Arrival"])))
 			self.departure_flight_table.setItem(rowPosition , 6, QTableWidgetItem(str(self.current_dep_flight_data.loc[row, "Arr Date"])))
-			self.departure_flight_table.setItem(rowPosition , 7, QTableWidgetItem(str(self.current_dep_flight_data.loc[row, "Travel Class"])))
+			self.departure_flight_table.setItem(rowPosition , 7, QTableWidgetItem(str(self.current_dep_flight_data.loc[row, "Class"])))
 
 	def enter_return_flight_table_data(self):
 
@@ -1369,7 +1370,7 @@ Amenities:\t\t{hotel_amenities}\
 
 		for row in range(len(self.current_ret_flight_data)):
 
-			# Add flight information into the table ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Travel Class"]
+			# Add flight information into the table ["Airline", "Price", "Type", "Departure", "Dpt Date", "Arrival", "Arr Date", "Class"]
 			rowPosition = self.return_flight_table.rowCount()
 			self.return_flight_table.insertRow(rowPosition)
 			self.return_flight_table.setItem(rowPosition , 0, QTableWidgetItem(str(self.current_ret_flight_data.loc[row, "Airline"])))
@@ -1379,7 +1380,7 @@ Amenities:\t\t{hotel_amenities}\
 			self.return_flight_table.setItem(rowPosition , 4, QTableWidgetItem(str(self.current_ret_flight_data.loc[row, "Dpt Date"])))
 			self.return_flight_table.setItem(rowPosition , 5, QTableWidgetItem(str(self.current_ret_flight_data.loc[row, "Arrival"])))
 			self.return_flight_table.setItem(rowPosition , 6, QTableWidgetItem(str(self.current_ret_flight_data.loc[row, "Arr Date"])))
-			self.return_flight_table.setItem(rowPosition , 7, QTableWidgetItem(str(self.current_ret_flight_data.loc[row, "Travel Class"])))
+			self.return_flight_table.setItem(rowPosition , 7, QTableWidgetItem(str(self.current_ret_flight_data.loc[row, "Class"])))
 
 	def enter_hotel_table_data(self):
 
@@ -1388,13 +1389,13 @@ Amenities:\t\t{hotel_amenities}\
 
 		for row in range(len(self.current_hotel_data)):
 
-			# Add flight information into the table ["Name", "Price per Night", "Total Price", "Rating", "Distance from Airport", "Amenities"]
+			# Add flight information into the table ["Name", "Price/Night", "Total Price", "Rating", "Distance from Airport", "Amenities"]
 
 			rowPosition = self.hotel_table.rowCount()
 			# print([rowPosition, row, self.current_hotel_data.loc[row, "Total Price"]])
 			self.hotel_table.insertRow(rowPosition)
 			self.hotel_table.setItem(rowPosition , 0, QTableWidgetItem(str(self.current_hotel_data.loc[row, "Name"])))
-			self.hotel_table.setItem(rowPosition , 1, QTableWidgetItem(str(self.current_hotel_data.loc[row, "Price per Night"])))
+			self.hotel_table.setItem(rowPosition , 1, QTableWidgetItem(str(self.current_hotel_data.loc[row, "Price/Night"])))
 			self.hotel_table.setItem(rowPosition , 2, QTableWidgetItem(str(self.current_hotel_data.loc[row, "Total Price"])))
 			self.hotel_table.setItem(rowPosition , 3, QTableWidgetItem(str(self.current_hotel_data.loc[row, "Rating"])))
 			self.hotel_table.setItem(rowPosition , 4, QTableWidgetItem(str(self.current_hotel_data.loc[row, "Distance from Airport"])))
