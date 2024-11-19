@@ -1,0 +1,6 @@
+haversine
+pyqt5==5.14.0
+requests
+beautifulsoup4
+pandas
+numpy
