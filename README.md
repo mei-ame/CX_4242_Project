@@ -34,10 +34,23 @@ FairFare ensures that travel planning experience is affordable and hassle-free.
    ```
 
 2. **Local interaction**:
+   - Once the application launches, a graphical user interface (GUI) will appear.
    - Follow the on-screen prompts to enter travel details such as dates, budget, and preferences
 
 3. **Explore the Demo**:
-   - View personalized flight and hotel options in dynamic tables.
-   - Confirm your selections on the summary page.
+   Follow these steps to interact with the application:
+     1. **Flight Selection**:
+         - Navigate to the *Flights Page* to view a table of flight options tailored to your criteria.
+         - Columns include flight price, number of layovers, travel duration, and departure/arrival times.
+         - Use sorting and filtering tools to refine your selection further.
+
+      2. **Hotel Selection**:
+         - Switch to the *Hotels Page* to browse a table of accommodation options.
+         - The table provides details such as hotel name, price per night, distance from the airport, and included amenities.
+         - Customize the ranking of features to prioritize options that match your preferences.
+
+      3. **Review Your Selections**:
+         - Proceed to the *Confirmation Page* to view a summary of your chosen flight and hotel.
+         - Ensure all details align with your preferences before finalizing your trip plan.
 
 ---
