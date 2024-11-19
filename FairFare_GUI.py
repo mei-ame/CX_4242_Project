@@ -837,9 +837,15 @@ Amenities:\t\t \
 		self.confirm_hotel_panel = QFrame(self)
 		self.confirm_hotel_panel.setLayout(confirm_hotel_panel_layout)
 
+		self.total_price = QLabel("Total Price: $")
+
 		confirm_frame_layout = QVBoxLayout()
+		confirm_frame_layout.addWidget(self.total_price)
+		confirm_frame_layout.addWidget(QLabel("-"*50))
 		confirm_frame_layout.addWidget(self.confirm_dep_flight_panel)
+		confirm_frame_layout.addWidget(QLabel("-"*50))
 		confirm_frame_layout.addWidget(self.confirm_ret_flight_panel)
+		confirm_frame_layout.addWidget(QLabel("-"*50))
 		confirm_frame_layout.addWidget(self.confirm_hotel_panel)
 		confirm_frame_layout.addWidget(QLabel("\nThank you for using FairFare!\n"))
 
@@ -1169,6 +1175,7 @@ Distance from Airport:\t{self.current_hotel["Distance from Airport"]}\n\
 Amenities:\t\t{hotel_amenities}\
 '
 			self.confirm_hotel_details.setText(hotel_details)
+			self.update_price()
 		
 
 	def on_departure_flight_row_clicked(self, row, column):
@@ -1191,6 +1198,7 @@ Layover Flights:\t {str(self.current_dep_flight["numLegs"] - 1)}\
 
 
 	def on_departure_flight_select_clicked(self):
+		self.clear_return_flight_table()
 		if type(self.current_dep_flight) != type(None):
 
 			###################################################################################################################
@@ -1278,18 +1286,38 @@ Layover Flights:\t {str(self.current_dep_flight["numLegs"] - 1)}\
 
 			flight_details = \
 			f'\
-Airline:\t\t {self.current_dep_flight["Airline"]}\n\
-Price:\t\t {self.current_dep_flight["Price"]}\n\
-Type:\t\t {self.current_dep_flight["Type"]}\n\
-Departure:\t {self.current_dep_flight["Dpt Date"][:-4] + self.current_dep_flight["Departure"]}\n\
-Arrival:\t\t {self.current_dep_flight["Arr Date"][:-4] + self.current_dep_flight["Arrival"]}\n\
-Class:\t\t {self.current_dep_flight["Class"]}\n\
-Layover Flights:\t {str(self.current_dep_flight["numLegs"] - 1)}\
+Airline:\t\t\t {self.current_dep_flight["Airline"]}\n\
+Price:\t\t\t {self.current_dep_flight["Price"]}\n\
+Type:\t\t\t {self.current_dep_flight["Type"]}\n\
+Departure:\t\t {self.current_dep_flight["Dpt Date"][:-4] + self.current_dep_flight["Departure"]}\n\
+Arrival:\t\t\t {self.current_dep_flight["Arr Date"][:-4] + self.current_dep_flight["Arrival"]}\n\
+Class:\t\t\t {self.current_dep_flight["Class"]}\n\
+Layover Flights:\t\t {str(self.current_dep_flight["numLegs"] - 1)}\
 '
 			self.confirm_dep_flight_details.setText(flight_details)
 
+			self.update_price()
+			
+
 		###################################################################################################################
 		###################################################################################################################
+
+	def update_price(self):
+		flight_cost = 0
+		hotel_cost = 0
+
+		if type(self.current_dep_flight) != type(None):
+			flight_cost = max(flight_cost, int(self.current_dep_flight["Price"].strip("$")))
+
+		if type(self.current_ret_flight) != type(None):
+			flight_cost = max(flight_cost, int(self.current_ret_flight["Price"].strip("$")))
+
+		if type(self.current_hotel) != type(None):
+			hotel_cost = max(hotel_cost, int(self.current_hotel["Total Price"].strip("$")))
+
+		total_cost = "Total Cost: $" + str(flight_cost + hotel_cost)
+
+		self.total_price.setText(total_cost)
 
 	def on_return_flight_row_clicked(self, row, column):
 		if row > 0:
@@ -1314,15 +1342,16 @@ Layover Flights:\t {str(self.current_ret_flight["numLegs"] - 1)}\
 		if type(self.current_ret_flight) != type(None):
 			flight_details = \
 				f'\
-Airline:\t\t {self.current_ret_flight["Airline"]}\n\
-Price:\t\t {self.current_ret_flight["Price"]}\n\
-Type:\t\t {self.current_ret_flight["Type"]}\n\
-Departure:\t {self.current_ret_flight["Dpt Date"][:-4] + self.current_dep_flight["Departure"]}\n\
-Arrival:\t\t {self.current_ret_flight["Arr Date"][:-4] + self.current_dep_flight["Arrival"]}\n\
-Class:\t\t {self.current_ret_flight["Class"]}\n\
-Layover Flights:\t {str(self.current_ret_flight["numLegs"] - 1)}\
+Airline:\t\t\t {self.current_ret_flight["Airline"]}\n\
+Price:\t\t\t {self.current_ret_flight["Price"]}\n\
+Type:\t\t\t {self.current_ret_flight["Type"]}\n\
+Departure:\t\t {self.current_ret_flight["Dpt Date"][:-4] + self.current_ret_flight["Departure"]}\n\
+Arrival:\t\t\t {self.current_ret_flight["Arr Date"][:-4] + self.current_ret_flight["Arrival"]}\n\
+Class:\t\t\t {self.current_ret_flight["Class"]}\n\
+Layover Flights:\t\t {str(self.current_ret_flight["numLegs"] - 1)}\
 '
 			self.confirm_ret_flight_details.setText(flight_details)
+			self.update_price()
 
 	def on_hotel_row_clicked(self, row, column):
 		if row > 0:
