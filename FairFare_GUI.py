@@ -39,7 +39,9 @@ GUI_PANEL_WIDTH = 300
 LEFT_PANEL_HEIGHT = 700
 LEFT_PANEL_WIDTH = 300
 
-QCOMBO_HEIGHT = 50
+QCOMBO_WIDTH = 50
+
+BOTTOM_MARGIN_HEIGHT = 100
 
 # QLABEL_BASE = "QLabel {{background: #{}; color: #00aeef; border: 3px inset #5252cc; font: 'Noto Serif';}}"
 # # QLABEL_DEFAULT = "QLabel {background: #002050; color: #00aeef; border: 3px outset #5252cc; font: 'Noto Serif'; font-size: 50pt;}"
@@ -72,7 +74,8 @@ QLABEL_LEFT = "QWidget {text-align: center; qproperty-alignment: AlignTop;} \
 
 # SERP_API_KEY = "b637153e8613b18fc81533dfbf72045c9b43cbdd25323736bc3009ee6c38435a"  
 # SERP_API_KEY = "8e3b97559f70aeb1a2d6f78da4ca024bab7525e316361ac1c955016a16136cf7"
-SERP_API_KEY = "a9deee9173656ca6302d2fed79e2b999494e4e0bcd7d177aad40ea88be63aa17"
+# SERP_API_KEY = "a9deee9173656ca6302d2fed79e2b999494e4e0bcd7d177aad40ea88be63aa17"
+SERP_API_KEY = "98996fc578c4cf577fac5070926f13d5c0eddf39b951554b8d11953e305bb392"
 
 # Font Code
 class Font(QFont):
@@ -330,11 +333,13 @@ class FlightSearchApp(QWidget):
 		self.flight_rank_leg.setToolTip("1 - Most Important, 2 - Least Important")
 		self.flight_rank_leg.addItems(['1','2'])
 		self.flight_rank_leg.setCurrentText('1')
+		self.flight_rank.leg.setFixedWidth(QCOMBO_WIDTH)
 
 		self.flight_rank_time = QComboBox(self)
 		self.flight_rank_time.setToolTip("1 - Most Important, 2 - Least Important")
 		self.flight_rank_time.addItems(['1','2'])
 		self.flight_rank_time.setCurrentText('1')
+		self.flight_rank_time.setFixedWidth(QCOMBO_WIDTH)
 
 		flight_rank_layout_leg = QHBoxLayout()
 		flight_rank_layout_leg.addWidget(QLabel("Layovers \t"))
@@ -621,21 +626,25 @@ Layover Flights:\t \
 		self.hotel_rank_rating.setToolTip("1 - Most Important, ..., 4 - Least Important")
 		self.hotel_rank_rating.addItems(['1','2','3','4'])
 		self.hotel_rank_rating.setCurrentText('1')
+		self.hotel_rank_rating.setFixedWidth(QCOMBO_WIDTH)
 
 		self.hotel_rank_distance = QComboBox(self)
 		self.hotel_rank_distance.setToolTip("1 - Most Important, ..., 4 - Least Important")
 		self.hotel_rank_distance.addItems(['1','2','3','4'])
 		self.hotel_rank_distance.setCurrentText('1')
+		self.hotel_rank_distance.setFixedWidth(QCOMBO_WIDTH)
 
 		self.hotel_rank_wifi = QComboBox(self)
 		self.hotel_rank_wifi.setToolTip("1 - Most Important, ..., 4 - Least Important")
 		self.hotel_rank_wifi.addItems(['1','2','3','4'])
 		self.hotel_rank_wifi.setCurrentText('1')
+		self.hotel_rank_wifi.setFixedWidth(QCOMBO_WIDTH)
 
 		self.hotel_rank_breakfast = QComboBox(self)
 		self.hotel_rank_breakfast.setToolTip("1 - Most Important, ..., 4 - Least Important")
 		self.hotel_rank_breakfast.addItems(['1','2','3','4'])
 		self.hotel_rank_breakfast.setCurrentText('1')
+		self.hotel_rank_breakfast.setFixedWidth(QCOMBO_WIDTH)
 		
 		hotel_rank_layout_rating = QHBoxLayout()
 		hotel_rank_layout_rating.addWidget(QLabel("Rating \t"))
@@ -671,13 +680,6 @@ Layover Flights:\t \
 		hotel_rank_layout.addWidget(self.hotel_rank_button)
 		hotel_rank_layout.addWidget(self.hotel_rank_options_frame)	
 
-		hotel_search_button = QPushButton("Search Hotels", self)
-		hotel_search_button.clicked.connect(self.on_hotel_search_clicked)
-
-		hotel_select_button = QPushButton("Select Hotel", self)
-		hotel_select_button.clicked.connect(self.on_hotel_select_clicked)
-		hotel_select_button.setFixedWidth(200)
-
 		hotel_table_columns = ["Name", "Price per Night", "Total Price", "Rating", "Distance from Airport", "Amenities"]
 		self.hotel_table_label = QLabel("Hotels")
 		self.hotel_table = QTableWidget(self)
@@ -695,9 +697,23 @@ Layover Flights:\t \
 		self.hotel_table.setShowGrid(False)
 		self.hotel_table.setWordWrap(True)
 
+		hotel_search_button = QPushButton("Search Hotels", self)
+		hotel_search_button.clicked.connect(self.on_hotel_search_clicked)
+
+		hotel_select_button = QPushButton("Select Hotel", self)
+		hotel_select_button.clicked.connect(self.on_hotel_select_clicked)
+		hotel_select_button.setFixedWidth(200)
+
+		hotel_table_up_layout = QHBoxLayout()
+		hotel_table_up_layout.addWidget(self.hotel_table_label)
+		hotel_table_up_layout.addWidget(hotel_select_button)
+
+
 		hotel_table_layout = QVBoxLayout()
+		hotel_table_layout.addLayout(hotel_table_up_layout)
+		# hotel_table_layout.addWidget(self.hotel_table_label)
 		hotel_table_layout.addWidget(self.hotel_table)
-		hotel_table_layout.addWidget(self.hotel_table_label)
+		
 
 		hotel_details = \
 		f'\
@@ -733,7 +749,7 @@ Amenities:\t\t \
 
 		hotel_main_panel_buttons_layout = QHBoxLayout()
 		hotel_main_panel_buttons_layout.addWidget(hotel_search_button)
-		hotel_main_panel_buttons_layout.addWidget(hotel_select_button)
+		# hotel_main_panel_buttons_layout.addWidget(hotel_select_button)
 
 		hotel_main_panel_info_layout = QVBoxLayout()
 		hotel_main_panel_info_layout.addLayout(hotel_main_panel_buttons_layout)
@@ -847,25 +863,7 @@ Amenities:\t\t \
 		# self.hotel_menu_button.clicked.connect(self.on_menu_button_clicked)
 		# self.hotel_menu_button.setVisible(False)
 
-		self.next_menu_button = QPushButton("Next >>>")
-		self.next_menu_button.setVisible(False)
-		self.next_menu_button.clicked.connect(self.on_menu_button_clicked)
 
-		self.prev_menu_button = QPushButton("<<< Prev")
-		self.prev_menu_button.setVisible(False)
-		self.prev_menu_button.clicked.connect(self.on_menu_button_clicked)
-
-		self.menu_spacer_label = QLabel(" " * ((GUI_WIDTH // 10 * 7) // 6))
-
-		menu_frame_layout = QHBoxLayout()
-		# menu_frame_layout.addWidget(self.flight_menu_button)
-		menu_frame_layout.addWidget(self.prev_menu_button)
-		menu_frame_layout.addWidget(self.menu_spacer_label)
-		# menu_frame_layout.addWidget(self.hotel_menu_button)
-		menu_frame_layout.addWidget(self.next_menu_button)
-
-		self.menu_frame = QFrame(self)
-		self.menu_frame.setLayout(menu_frame_layout)
 
 		logo_label = QLabel(self)
 		logo_label.setPixmap(QPixmap("logo.png")) #.scaled(10, 20, Qt.KeepAspectRatio))
@@ -887,6 +885,30 @@ Amenities:\t\t \
 		self.logo_panel = QFrame(self)
 		self.logo_panel.setLayout(logo_panel_layout)
 
+
+		self.next_menu_button = QPushButton("Next >>>")
+		self.next_menu_button.setVisible(False)
+		self.next_menu_button.clicked.connect(self.on_menu_button_clicked)
+
+		self.prev_menu_button = QPushButton("<<< Prev")
+		self.prev_menu_button.setVisible(False)
+		self.prev_menu_button.clicked.connect(self.on_menu_button_clicked)
+
+		self.menu_spacer_label_1 = QLabel(" " * ((GUI_WIDTH // 10 * 5) // 12))
+		self.menu_spacer_label_2 = QLabel(" " * ((GUI_WIDTH // 10 * 5) // 12))
+
+		menu_frame_layout = QHBoxLayout()
+		# menu_frame_layout.addWidget(self.flight_menu_button)
+		menu_frame_layout.addWidget(self.prev_menu_button, stretch = 1)
+		menu_frame_layout.addWidget(self.menu_spacer_label_1, stretch = 3)
+		menu_frame_layout.addWidget(self.logo_panel, stretch = 1)
+		menu_frame_layout.addWidget(self.menu_spacer_label_2, stretch = 3)
+		# menu_frame_layout.addWidget(self.hotel_menu_button)
+		menu_frame_layout.addWidget(self.next_menu_button, stretch = 1)
+
+		self.menu_frame = QFrame(self)
+		self.menu_frame.setLayout(menu_frame_layout)
+
 		welcome_layout = QVBoxLayout()
 		welcome_layout.addWidget(self.welcome_start_button)
 		welcome_layout.setAlignment(Qt.AlignCenter)
@@ -896,14 +918,20 @@ Amenities:\t\t \
 
 		layout = QVBoxLayout()
 		layout.addWidget(self.menu_frame)
-		layout.addWidget(self.logo_panel)
+		# layout.addWidget(self.logo_panel)
 		layout.addWidget(self.welcome_panel)
 		layout.addWidget(self.flight_frame)
 		layout.addWidget(self.hotel_frame)
 		layout.addWidget(self.confirm_frame)
 
+		bottom_margin = QLabel("  ")
+		bottom_margin.setFixedHeight(BOTTOM_MARGIN_HEIGHT)
+		layout.addWidget(bottom_margin)
+
 		# layout.addWidget(QLabel("THIS IS A TEST"))
 		self.setLayout(layout)
+
+		self.showMaximized()
 
 	def on_start_button_clicked(self):
 		self.welcome_start_button.setVisible(False)
@@ -1492,7 +1520,7 @@ Amenities:\t\t{hotel_amenities}\
 
 
 		self.current_hotel_data = self.current_hotel_data.sort_values(['totalRank', 'totalPrice', 'dist'], ascending = [False, True, True]).reset_index()
-		# print(self.current_hotel_data.loc[:, "rateRank":])
+		print(self.current_hotel_data.loc[:, "rateRank":"totalRank"])
 		# print(self.current_hotel_data.loc[:, "totalRank":])
 
 		self.enter_hotel_table_data()
