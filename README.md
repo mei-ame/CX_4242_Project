@@ -15,7 +15,7 @@ FairFare ensures that travel planning experience is affordable and hassle-free.
 
 1. **Clone the repository**:
    ```bash
-   git clone git clone https://github.com/mei-ame/CX_4242_Project.git
+   git clone https://github.com/mei-ame/CX_4242_Project.git
    cd CX_4242_Project
    ```
 
