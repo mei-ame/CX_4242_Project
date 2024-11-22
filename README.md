@@ -53,4 +53,7 @@ FairFare ensures that travel planning experience is affordable and hassle-free.
          - Proceed to the *Confirmation Page* to view a summary of your chosen flight and hotel.
          - Ensure all details align with your preferences before finalizing your trip plan.
 
+4. **Demo**:
+   https://youtu.be/7qq0foxfz8A
+
 ---

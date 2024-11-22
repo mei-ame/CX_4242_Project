@@ -1,10 +1,7 @@
 from serpapi import GoogleSearch
 
 # Your SerpAPI API key
-# API_KEY = "b637153e8613b18fc81533dfbf72045c9b43cbdd25323736bc3009ee6c38435a"
-# API_KEY = "8e3b97559f70aeb1a2d6f78da4ca024bab7525e316361ac1c955016a16136cf7"
-# API_KEY = "a9deee9173656ca6302d2fed79e2b999494e4e0bcd7d177aad40ea88be63aa17"
-API_KEY = "98996fc578c4cf577fac5070926f13d5c0eddf39b951554b8d11953e305bb392"
+API_KEY = "0833d129d4d470155409dd49357d8fdaeccc304f1c64027d7d8cd83aa92f94de"
 
 # Function to search flights using inputs
 def search_flights(departure_id, arrival_id, outbound_date, return_date, currency, max_price=None, min_time=None, max_time=None, departure_token=None):
